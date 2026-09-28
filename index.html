@@ -1,740 +1,389 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#f6c84c">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="簡單記帳">
-
-  <title>我的簡單記帳</title>
-
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="apple-touch-icon" href="./icon-180.png">
-
-  <style>
-    :root{
-      --bg:#f8f6ef;--card:#fffdf8;--text:#202020;--muted:#777;
-      --yellow:#f6c84c;--blue:#58b9df;--red:#ff6f67;--green:#48ad79;
-      --line:#202020;--shadow:0 10px 28px rgba(0,0,0,.08)
-    }
-    *{box-sizing:border-box}
-    html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);
-      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
-    button,input,select,textarea{font:inherit} button{cursor:pointer}
-    .hidden{display:none!important}
-
-    #authPage{min-height:100vh;display:grid;place-items:center;padding:24px;
-      background:radial-gradient(circle at 10% 10%,rgba(246,200,76,.35),transparent 27%),
-      radial-gradient(circle at 90% 90%,rgba(88,185,223,.28),transparent 27%),var(--bg)}
-    .auth-card{width:min(100%,420px);background:var(--card);border:2px solid var(--line);
-      border-radius:26px;padding:26px;box-shadow:var(--shadow)}
-    .brand{text-align:center;margin-bottom:22px}
-    .brand img{width:92px;height:92px;border-radius:24px;border:2px solid var(--line);box-shadow:var(--shadow)}
-    .brand h1{margin:12px 0 4px;font-size:28px}.brand p{margin:0;color:var(--muted);font-size:14px}
-    .tabs,.seg{display:grid;grid-template-columns:1fr 1fr;border:2px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:16px}
-    .tabs button,.seg button{border:0;background:#fff;padding:11px;font-weight:900}
-    .tabs button.active,.seg button.active{background:var(--yellow)}
-    .seg button:last-child.active{background:var(--blue)}
-    .field,.form-row{margin-bottom:13px}
-    .field label,.form-row label{display:block;font-size:12px;font-weight:900;margin-bottom:6px;color:#555}
-    .field input,.form-row input,.form-row select,.form-row textarea{
-      width:100%;border:2px solid var(--line);background:#fff;border-radius:12px;padding:12px;outline:none}
-    .primary{width:100%;border:2px solid var(--line);background:var(--red);color:#fff;border-radius:14px;padding:13px;font-weight:900}
-    .auth-msg{min-height:22px;margin-top:12px;text-align:center;font-size:13px;color:#b33}
-    .setup{margin-top:14px;padding:11px 12px;background:#fff3c9;border:1.5px solid #d5ac30;border-radius:12px;font-size:12px;line-height:1.6}
-
-    .app{width:min(100%,520px);min-height:100vh;margin:auto;padding-bottom:110px}
-    .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;
-      padding:15px 16px 9px;background:rgba(248,246,239,.94);backdrop-filter:blur(12px)}
-    .topbar select{border:0;background:transparent;font-size:20px;font-weight:900;outline:none}
-    .icon-btn{border:0;background:transparent;font-size:22px;padding:7px}
-
-    .userbar,.period-card{margin:0 16px 10px;padding:10px 12px;border:2px solid var(--line);background:#fff;border-radius:14px;
-      display:flex;align-items:center;justify-content:space-between;gap:10px}
-    .user-email{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
-    .small-btn{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:7px 10px;font-weight:800}
-    .period-card{background:#fffaf0}.period-label{font-size:12px;color:var(--muted);font-weight:800}.period-value{font-weight:900;margin-top:2px}
-
-    .summary{margin:0 16px 14px;padding:14px 14px 18px;border:2px solid var(--line);border-radius:20px;background:var(--card);box-shadow:var(--shadow)}
-    .summary-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-    .summary-head h2{font-size:16px;margin:0}.chip{font-size:12px;background:#222;color:#fff;border-radius:999px;padding:5px 9px;font-weight:800}
-    .summary-grid{display:grid;grid-template-columns:1fr 165px 1fr;align-items:center;gap:6px}
-    .metric{text-align:center}.metric small{display:block;font-weight:900;margin-bottom:4px}.metric strong{font-size:18px}
-    .expense small{color:#b68d00}.income small{color:#2c98c2}
-    .donut-wrap{position:relative;width:155px;height:155px;margin:auto}.donut{position:absolute;inset:0;border-radius:50%;border:2px solid var(--line)}
-    .donut:after{content:"";position:absolute;inset:30px;border-radius:50%;background:var(--card);border:2px solid var(--line)}
-    .donut-center{position:absolute;inset:0;z-index:2;display:grid;place-content:center;text-align:center;font-weight:900}
-    .donut-center span{font-size:12px}.donut-center strong{font-size:19px;margin-top:3px}
-
-    .quick-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 16px 14px}
-    .quick-card{border:2px solid var(--line);background:#fff;border-radius:14px;padding:11px 8px;text-align:center;font-weight:900}
-    .quick-card span{display:block;font-size:11px;color:var(--muted);margin-top:3px}
-    .section-title{display:flex;align-items:center;justify-content:space-between;padding:0 18px 8px}.section-title h3{margin:0}
-    .section-title button{border:0;background:transparent;font-weight:800;color:#555}
-    .transactions{padding:0 16px}
-    .day-group{border:2px solid var(--line);border-radius:16px;background:var(--card);overflow:hidden;margin-bottom:12px}
-    .day-head{display:flex;justify-content:space-between;padding:10px 12px;background:#fffaf0;border-bottom:1.5px solid var(--line);font-weight:900;font-size:13px}
-    .tx{display:grid;grid-template-columns:42px 1fr auto auto;gap:10px;align-items:center;padding:12px;border-bottom:1px solid #ddd}.tx:last-child{border-bottom:0}
-    .emoji{width:38px;height:38px;border-radius:12px;background:#f1eee4;display:grid;place-items:center;font-size:21px}
-    .tx-name{font-weight:900}.tx-note{font-size:11px;color:var(--muted);margin-top:2px}.tx-amount{font-weight:900}.tx-amount.inc{color:#2494bd}
-    .delete-btn{border:0;background:transparent;color:#aaa;font-size:18px}
-    .empty{border:2px dashed #aaa;border-radius:16px;padding:28px 18px;text-align:center;color:#777;background:#fff}
-    .fab{position:fixed;left:50%;transform:translateX(-50%);bottom:26px;width:64px;height:64px;border-radius:50%;
-      border:2px solid var(--line);background:var(--red);color:#fff;font-size:38px;box-shadow:0 8px 18px rgba(255,111,103,.35);z-index:30}
-
-    .modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:flex-end;justify-content:center;z-index:50}.modal.show{display:flex}
-    .sheet{width:min(100%,520px);background:var(--bg);border-radius:24px 24px 0 0;padding:18px 18px calc(22px + env(safe-area-inset-bottom));max-height:90vh;overflow:auto}
-    .sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.sheet-head h3{margin:0}.close{border:0;background:#eae5da;border-radius:50%;width:34px;height:34px;font-size:20px}
-    .amount-input{font-size:30px!important;font-weight:900;text-align:right}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .danger{width:100%;border:2px solid #b33;background:#fff;color:#b33;border-radius:14px;padding:11px;font-weight:900;margin-top:10px}
-    .hint{font-size:12px;color:#777;line-height:1.6}
-
-    @media(max-width:420px){
-      .summary-grid{grid-template-columns:1fr 132px 1fr}.donut-wrap{width:126px;height:126px}.donut:after{inset:25px}.metric strong{font-size:15px}
-    }
-  
-    /* ===== Responsive layout ===== */
-    html {
-      -webkit-text-size-adjust: 100%;
-      text-size-adjust: 100%;
-    }
-
-    body {
-      overflow-x: hidden;
-    }
-
-    .app {
-      width: min(100%, 720px);
-      padding-left: env(safe-area-inset-left);
-      padding-right: env(safe-area-inset-right);
-    }
-
-    .topbar {
-      padding-left: max(14px, env(safe-area-inset-left));
-      padding-right: max(14px, env(safe-area-inset-right));
-    }
-
-    .summary-grid,
-    .quick-row,
-    .tx {
-      min-width: 0;
-    }
-
-    .metric,
-    .tx > *,
-    .userbar > *,
-    .period-card > * {
-      min-width: 0;
-    }
-
-    .tx-name,
-    .tx-note,
-    .user-email {
-      overflow-wrap: anywhere;
-      word-break: break-word;
-    }
-
-    .tx-amount {
-      white-space: nowrap;
-    }
-
-    /* 平板 / 大手機 */
-    @media (max-width: 768px) {
-      .app {
-        width: 100%;
-      }
-
-      .auth-card {
-        width: min(100%, 460px);
-      }
-
-      .summary {
-        margin-left: 14px;
-        margin-right: 14px;
-      }
-
-      .userbar,
-      .period-card,
-      .quick-row {
-        margin-left: 14px;
-        margin-right: 14px;
-      }
-
-      .transactions {
-        padding-left: 14px;
-        padding-right: 14px;
-      }
-    }
-
-    /* 一般手機 */
-    @media (max-width: 560px) {
-      .topbar {
-        padding-top: max(12px, env(safe-area-inset-top));
-      }
-
-      .topbar select {
-        font-size: 18px;
-        max-width: 62vw;
-      }
-
-      .userbar {
-        align-items: flex-start;
-      }
-
-      .user-email {
-        max-width: 58vw;
-      }
-
-      .period-card {
-        align-items: flex-start;
-      }
-
-      .summary {
-        padding: 13px 12px 16px;
-      }
-
-      .summary-grid {
-        grid-template-columns: 1fr 118px 1fr;
-        gap: 4px;
-      }
-
-      .donut-wrap {
-        width: 112px;
-        height: 112px;
-      }
-
-      .donut:after {
-        inset: 22px;
-      }
-
-      .donut-center span {
-        font-size: 11px;
-      }
-
-      .donut-center strong {
-        font-size: 16px;
-      }
-
-      .metric small {
-        font-size: 11px;
-      }
-
-      .metric strong {
-        font-size: 15px;
-      }
-
-      .quick-row {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 7px;
-      }
-
-      .quick-card {
-        padding: 10px 5px;
-        font-size: 13px;
-      }
-
-      .quick-card span {
-        font-size: 10px;
-      }
-
-      .tx {
-        grid-template-columns: 38px minmax(0,1fr) auto 26px;
-        gap: 8px;
-        padding: 10px;
-      }
-
-      .emoji {
-        width: 34px;
-        height: 34px;
-        font-size: 18px;
-      }
-
-      .tx-name {
-        font-size: 14px;
-      }
-
-      .tx-note {
-        font-size: 10px;
-      }
-
-      .tx-amount {
-        font-size: 13px;
-      }
-
-      .day-head {
-        font-size: 12px;
-      }
-
-      .fab {
-        width: 60px;
-        height: 60px;
-        bottom: max(18px, calc(env(safe-area-inset-bottom) + 12px));
-        font-size: 34px;
-      }
-
-      .app {
-        padding-bottom: 100px;
-      }
-
-      .sheet {
-        padding-left: 14px;
-        padding-right: 14px;
-      }
-    }
-
-    /* 小型 iPhone，例如 SE / 375px 以下 */
-    @media (max-width: 390px) {
-      .auth-card {
-        padding: 20px 16px;
-        border-radius: 20px;
-      }
-
-      .brand img {
-        width: 76px;
-        height: 76px;
-      }
-
-      .brand h1 {
-        font-size: 24px;
-      }
-
-      .topbar {
-        padding-left: 10px;
-        padding-right: 10px;
-      }
-
-      .icon-btn {
-        font-size: 20px;
-        padding: 6px;
-      }
-
-      .topbar select {
-        font-size: 16px;
-        max-width: 58vw;
-      }
-
-      .userbar,
-      .period-card,
-      .summary,
-      .quick-row {
-        margin-left: 10px;
-        margin-right: 10px;
-      }
-
-      .transactions {
-        padding-left: 10px;
-        padding-right: 10px;
-      }
-
-      .userbar,
-      .period-card {
-        padding: 9px 10px;
-      }
-
-      .small-btn {
-        padding: 6px 8px;
-        font-size: 12px;
-      }
-
-      .summary-grid {
-        grid-template-columns: 1fr 94px 1fr;
-      }
-
-      .donut-wrap {
-        width: 90px;
-        height: 90px;
-      }
-
-      .donut:after {
-        inset: 18px;
-      }
-
-      .donut-center strong {
-        font-size: 13px;
-      }
-
-      .donut-center span {
-        font-size: 9px;
-      }
-
-      .metric small {
-        font-size: 10px;
-      }
-
-      .metric strong {
-        font-size: 13px;
-      }
-
-      .quick-card {
-        font-size: 12px;
-        padding: 9px 3px;
-      }
-
-      .tx {
-        grid-template-columns: 34px minmax(0,1fr) auto 22px;
-        gap: 6px;
-        padding: 9px 8px;
-      }
-
-      .emoji {
-        width: 31px;
-        height: 31px;
-        border-radius: 10px;
-      }
-
-      .tx-amount {
-        font-size: 12px;
-      }
-
-      .delete-btn {
-        font-size: 16px;
-        padding: 2px;
-      }
-
-      .grid2 {
-        grid-template-columns: 1fr;
-        gap: 0;
-      }
-    }
-
-    /* 超小螢幕：改成上下排列，避免擠爆 */
-    @media (max-width: 340px) {
-      .summary-grid {
-        grid-template-columns: 1fr;
-        gap: 10px;
-      }
-
-      .metric {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 0 8px;
-      }
-
-      .metric small {
-        margin: 0;
-      }
-
-      .donut-wrap {
-        width: 120px;
-        height: 120px;
-      }
-
-      .donut:after {
-        inset: 24px;
-      }
-
-      .quick-row {
-        grid-template-columns: 1fr;
-      }
-
-      .tx {
-        grid-template-columns: 32px minmax(0,1fr) auto;
-      }
-
-      .delete-btn {
-        grid-column: 3;
-      }
-    }
-
-    /* 平板與桌機 */
-    @media (min-width: 769px) {
-      .app {
-        width: min(100%, 760px);
-      }
-
-      .summary-grid {
-        grid-template-columns: 1fr 190px 1fr;
-      }
-
-      .donut-wrap {
-        width: 180px;
-        height: 180px;
-      }
-
-      .donut:after {
-        inset: 35px;
-      }
-
-      .metric strong {
-        font-size: 22px;
-      }
-
-      .quick-card {
-        padding: 14px 10px;
-      }
-
-      .transactions {
-        padding-left: 18px;
-        padding-right: 18px;
-      }
-
-      .tx {
-        grid-template-columns: 46px minmax(0,1fr) auto 30px;
-      }
-
-      .fab {
-        left: 50%;
-      }
-    }
-
-    /* 大桌機：避免畫面被拉得太寬 */
-    @media (min-width: 1100px) {
-      body {
-        background:
-          linear-gradient(90deg, #f0eee8 0, #f8f6ef 15%, #f8f6ef 85%, #f0eee8 100%);
-      }
-
-      .app {
-        width: 760px;
-      }
-    }
-
-  
-    /* ===== Cleaner account area ===== */
-    .account-card{
-      display:flex;align-items:center;justify-content:space-between;gap:12px;
-      border:2px solid var(--line);background:#fff;border-radius:16px;
-      padding:12px 14px;margin-bottom:16px
-    }
-    .account-card>div{min-width:0}
-    .account-label{font-size:11px;font-weight:900;color:var(--muted);margin-bottom:3px}
-    .account-email{font-size:13px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:300px}
-    .account-logout{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:8px 12px;font-weight:900;white-space:nowrap}
-
-    /* ===== App-like quick entry ===== */
-    .entry-sheet{
-      background:#fffdf8;
-      padding:14px 16px max(20px,env(safe-area-inset-bottom));
-      border-radius:28px 28px 0 0;
-      max-height:94vh
-    }
-    .entry-top{
-      display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:8px;
-      margin-bottom:4px
-    }
-    .entry-close{justify-self:start}
-    .entry-spacer{width:44px}
-    .entry-type-tabs{
-      display:grid;grid-template-columns:1fr 1fr;background:#efede5;
-      border-radius:14px;padding:4px;gap:4px
-    }
-    .entry-type-tabs button{
-      border:0;background:transparent;border-radius:10px;padding:9px 12px;
-      font-weight:900;color:#777
-    }
-    .entry-type-tabs button.active{
-      background:#fff;color:#222;box-shadow:0 2px 8px rgba(0,0,0,.08)
-    }
-    #expenseTab.active{color:#b88400}
-    #incomeTab.active{color:#1685ad}
-
-    .amount-hero{
-      display:flex;align-items:center;justify-content:center;gap:6px;
-      padding:18px 8px 10px
-    }
-    .amount-hero .currency{font-size:30px;font-weight:900;color:#444}
-    .amount-hero input{
-      width:min(72vw,360px);border:0;background:transparent;outline:none;
-      font-size:50px;font-weight:900;text-align:center;color:#222;padding:0
-    }
-    .amount-hero input::placeholder{color:#c8c3b8}
-
-    .entry-date-row{
-      display:flex;justify-content:center;margin-bottom:16px
-    }
-    #date{
-      position:absolute;opacity:0;pointer-events:none;width:1px;height:1px
-    }
-    .date-pill{
-      border:1.5px solid #d4d0c7;background:#f6f3ea;border-radius:999px;
-      padding:8px 14px;font-weight:800;color:#555;display:flex;gap:6px;align-items:center
-    }
-
-    .category-title{
-      font-size:13px;font-weight:900;color:#777;margin:4px 2px 10px
-    }
-    .category-grid{
-      display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px
-    }
-    .category-item{
-      border:0;background:transparent;text-align:center;padding:0
-    }
-    .category-bubble{
-      width:54px;height:54px;margin:0 auto 5px;border-radius:18px;
-      display:grid;place-items:center;background:#f1eee4;border:2px solid transparent;
-      font-size:25px;transition:.15s ease
-    }
-    .category-item span:last-child{
-      display:block;font-size:11px;font-weight:800;color:#555
-    }
-    .category-item.selected .category-bubble{
-      background:#fff4cf;border-color:#e0b528;transform:translateY(-1px)
-    }
-    .category-item.selected span:last-child{color:#222}
-
-    .entry-detail-card{
-      border:1.5px solid #ded9cf;border-radius:16px;background:#fff;overflow:hidden;margin-bottom:14px
-    }
-    .detail-line{
-      display:grid;grid-template-columns:28px 1fr;align-items:center;padding:0 12px
-    }
-    .detail-line + .detail-line{border-top:1px solid #ece8df}
-    .detail-icon{font-size:16px;text-align:center}
-    .detail-line input{
-      border:0!important;background:transparent!important;padding:13px 8px!important;outline:none!important
-    }
-    .entry-save{
-      width:100%;border:0;border-radius:16px;background:#f2c44c;color:#222;
-      padding:14px;font-size:17px;font-weight:900;box-shadow:0 5px 14px rgba(242,196,76,.28)
-    }
-    .entry-save:active{transform:translateY(1px)}
-
-    @media(max-width:390px){
-      .entry-sheet{padding-left:12px;padding-right:12px}
-      .amount-hero input{font-size:44px;width:68vw}
-      .category-grid{gap:8px}
-      .category-bubble{width:49px;height:49px;font-size:22px;border-radius:16px}
-    }
-
-    @media(max-width:340px){
-      .category-grid{grid-template-columns:repeat(3,1fr)}
-    }
-
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#ffffff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="簡單記帳">
+<title>簡單記帳</title>
+
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./icon-180.png">
+
+<style>
+:root{
+  --yellow:#ffc94f;
+  --blue:#48afd2;
+  --red:#ff7175;
+  --ink:#111;
+  --muted:#777;
+  --line:#181818;
+  --bg:#fff;
+  --soft:#f1f1f1;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#fff;color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
+body{overflow-x:hidden}
+button,input,select{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+
+/* auth */
+#authPage{min-height:100vh;display:grid;place-items:center;padding:24px;background:#fafafa}
+.auth-card{width:min(100%,420px);background:#fff;border:2px solid var(--line);border-radius:24px;padding:24px;box-shadow:0 12px 30px rgba(0,0,0,.08)}
+.brand{text-align:center;margin-bottom:22px}
+.brand img{width:86px;height:86px;border-radius:24px;border:2px solid var(--line)}
+.brand h1{margin:12px 0 4px;font-size:28px}
+.brand p{margin:0;color:var(--muted);font-size:14px}
+.auth-tabs{display:grid;grid-template-columns:1fr 1fr;border:2px solid var(--line);border-radius:14px;overflow:hidden;margin:18px 0}
+.auth-tabs button{border:0;background:#fff;padding:11px;font-weight:900}
+.auth-tabs button.active{background:var(--yellow)}
+.field{margin-bottom:13px}
+.field label{display:block;font-size:12px;font-weight:900;margin-bottom:6px;color:#555}
+.field input{width:100%;border:2px solid var(--line);border-radius:12px;padding:12px;outline:none}
+.auth-submit{width:100%;border:2px solid var(--line);border-radius:14px;background:var(--red);color:#fff;padding:13px;font-weight:900}
+.auth-msg{min-height:22px;margin-top:12px;text-align:center;font-size:13px;color:#b33}
+.setup{margin-top:14px;padding:11px;background:#fff3c9;border:1px solid #d5ac30;border-radius:12px;font-size:12px}
+
+/* App shell */
+#mainApp{width:min(100%,520px);min-height:100vh;margin:0 auto;background:#fff;position:relative}
+.view{min-height:100vh}
+
+/* HOME */
+.home-header{
+  height:78px;
+  display:grid;grid-template-columns:56px 1fr 90px;
+  align-items:end;
+  padding:0 18px 16px;
+  border-bottom:1px solid #ddd;
+  padding-top:max(10px,env(safe-area-inset-top));
+  background:#fff;position:sticky;top:0;z-index:20
+}
+.home-header .menu-btn,.home-header .head-icon{
+  border:0;background:transparent;color:#111;font-size:29px;line-height:1;padding:4px
+}
+.menu-btn{justify-self:start;font-weight:900}
+.month-wrap{display:flex;justify-content:center;align-items:center}
+#monthSelect{
+  appearance:none;border:0;background:transparent;outline:none;
+  font-weight:900;font-size:23px;text-align:center;color:#111;
+  padding:2px 28px 2px 8px;
+  background-image:
+    linear-gradient(45deg,transparent 50%,#111 50%),
+    linear-gradient(135deg,#111 50%,transparent 50%);
+  background-position:calc(100% - 12px) 52%,calc(100% - 5px) 52%;
+  background-size:8px 8px,8px 8px;background-repeat:no-repeat
+}
+.header-icons{display:flex;justify-content:flex-end;gap:12px}
+.head-icon{font-size:25px!important}
+
+.stats-row{display:grid;grid-template-columns:1fr 1fr;padding:18px 26px 4px;gap:32px}
+.stat-box:last-child{text-align:right}
+.stat-label{font-size:19px;font-weight:900;display:inline-block;position:relative;margin-bottom:6px}
+.stat-label::after{content:"";position:absolute;height:7px;border-radius:5px;bottom:-2px;left:-2px;right:8px;z-index:-1}
+.expense-stat .stat-label::after{background:var(--yellow)}
+.income-stat .stat-label::after{background:var(--blue)}
+.stat-label .arrow{font-size:15px;margin-left:3px}
+.stat-number{font-size:28px;font-weight:900;letter-spacing:.2px}
+
+.chart-zone{padding:14px 0 2px;display:flex;justify-content:center}
+.donut-wrap{position:relative;width:min(58vw,300px);height:min(58vw,300px)}
+.donut{position:absolute;inset:0;border-radius:50%;border:3px solid var(--line);
+  background:conic-gradient(var(--blue) 0 270deg,var(--yellow) 270deg 360deg)}
+.donut::after{content:"";position:absolute;inset:27%;border-radius:50%;background:#fff;border:3px solid var(--line)}
+.donut-center{position:absolute;inset:28%;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.coins{font-size:37px;line-height:1;margin-bottom:5px}
+.balance-label{font-size:17px;font-weight:900}
+.balance-number{font-size:25px;font-weight:900;line-height:1.1;margin-top:3px}
+
+.pager-dots{text-align:center;font-size:25px;letter-spacing:7px;color:#d5d5d5;height:35px}
+.pager-dots b{color:#929292}
+
+.list-wrap{padding:0 18px calc(105px + env(safe-area-inset-bottom))}
+.day-card{
+  border:3px solid var(--line);border-radius:18px;margin:0 0 18px;background:#fff;overflow:hidden
+}
+.day-head{
+  min-height:70px;display:flex;align-items:center;justify-content:space-between;
+  padding:14px 14px;border-bottom:3px solid var(--line);font-weight:900
+}
+.day-date{font-size:18px}
+.day-net{font-size:18px;color:var(--yellow)}
+.tx-row{
+  display:grid;grid-template-columns:58px 1fr auto;align-items:center;gap:8px;
+  min-height:72px;padding:8px 14px
+}
+.tx-icon{
+  width:46px;height:46px;border-radius:14px;display:grid;place-items:center;
+  font-size:28px;background:#f5f5f5
+}
+.tx-name{font-size:18px;font-weight:900}
+.tx-note{font-size:11px;color:#888;margin-top:2px}
+.tx-amount{font-size:18px;font-weight:900;white-space:nowrap}
+.tx-amount.income{color:#1689b0}
+
+.empty{
+  margin-top:25px;border:2px dashed #bbb;border-radius:18px;padding:28px 15px;text-align:center;color:#777
+}
+.fab{
+  position:fixed;z-index:35;left:50%;transform:translateX(-50%);
+  bottom:max(22px,calc(env(safe-area-inset-bottom) + 12px));
+  width:72px;height:72px;border-radius:50%;border:3px solid var(--line);
+  background:var(--red);color:#fff;font-size:45px;line-height:1;
+  box-shadow:0 6px 15px rgba(0,0,0,.12)
+}
+
+/* ENTRY */
+#entryView{background:#fff}
+.entry-header{
+  height:82px;display:grid;grid-template-columns:54px 1fr 54px;align-items:end;
+  border-bottom:1px solid #ddd;padding:0 15px 14px;padding-top:max(10px,env(safe-area-inset-top));
+  position:sticky;top:0;background:#fff;z-index:40
+}
+.back-btn,.more-btn{border:0;background:transparent;font-size:38px;padding:0;line-height:1}
+.more-btn{font-size:29px}
+.entry-tabs{
+  justify-self:center;width:min(250px,70vw);display:grid;grid-template-columns:1fr 1fr;
+  border:3px solid var(--line);border-radius:15px;overflow:hidden
+}
+.entry-tabs button{border:0;background:#fff;padding:9px 8px;font-size:18px;font-weight:900}
+.entry-tabs button.active{background:var(--yellow)}
+.entry-tabs button.income-active{background:var(--blue);color:#fff}
+
+.category-area{padding:24px 16px 250px}
+.category-grid{display:grid;grid-template-columns:repeat(4,1fr);row-gap:28px;column-gap:8px}
+.category-item{border:0;background:transparent;text-align:center;padding:0}
+.category-icon{
+  width:58px;height:58px;margin:0 auto 7px;border-radius:16px;display:grid;place-items:center;
+  font-size:35px;background:#fff
+}
+.category-name{font-size:16px;color:#333}
+.category-item.selected .category-icon{background:#fff1bd;outline:3px solid var(--yellow)}
+.category-item.selected .category-name{font-weight:900}
+.category-item.add-cat .category-icon{background:#eee;font-size:43px;color:#333}
+
+.entry-bottom{
+  position:fixed;z-index:45;left:50%;transform:translateX(-50%);
+  bottom:0;width:min(100%,520px);background:#fff;border-top:2px solid var(--line)
+}
+.entry-summary{
+  min-height:92px;display:grid;grid-template-columns:auto auto 1fr;align-items:center;gap:8px;padding:10px 14px 8px
+}
+.selected-mini{display:flex;align-items:center;gap:5px;font-size:30px}
+.currency-pill{font-size:17px;font-weight:900;background:#eee;border-radius:7px;padding:4px 7px}
+.entry-money{font-size:22px;font-weight:900}
+.note-input{
+  min-width:0;border:0;border-left:1px solid #aaa;outline:none;padding:11px 12px;
+  font-size:17px;color:#333
+}
+.note-input::placeholder{color:#bbb}
+.selected-tag{
+  grid-column:1/-1;justify-self:start;font-size:14px;font-weight:900;background:#eee;border-radius:999px;padding:6px 14px
+}
+
+.keypad{
+  background:var(--yellow);padding:8px 13px max(14px,env(safe-area-inset-bottom))
+}
+.date-bar{
+  height:50px;background:#fff;border:3px solid var(--line);border-radius:26px;
+  display:grid;grid-template-columns:44px 1fr 44px;align-items:center;margin-bottom:10px
+}
+.date-nav{border:0;background:transparent;font-size:27px;font-weight:900}
+.date-main{border:0;background:transparent;font-size:18px;font-weight:900;white-space:nowrap}
+#entryDate{position:absolute;opacity:0;pointer-events:none}
+
+.calc-grid{
+  display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(4,64px);gap:8px
+}
+.calc-btn{
+  border:3px solid var(--line);border-radius:50%;background:#fff;font-size:25px;font-weight:800
+}
+.calc-btn.blue{background:var(--blue);color:#fff;border-color:var(--line)}
+.calc-btn.red{background:var(--red);color:#fff;border-color:var(--line);border-radius:35px;grid-row:3/5;grid-column:5}
+.calc-btn:active{transform:scale(.97)}
+.calc-btn.back{font-size:30px}
+
+/* SETTINGS */
+.modal{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.35);display:none;align-items:flex-end;justify-content:center}
+.modal.show{display:flex}
+.sheet{width:min(100%,520px);max-height:90vh;overflow:auto;background:#fff;border-radius:24px 24px 0 0;padding:18px 18px calc(22px + env(safe-area-inset-bottom))}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.sheet-head h3{margin:0;font-size:22px}
+.close{border:0;background:#eee;border-radius:50%;width:36px;height:36px;font-size:22px}
+.account-card{display:flex;align-items:center;justify-content:space-between;gap:10px;border:2px solid var(--line);border-radius:15px;padding:11px;margin-bottom:15px}
+.account-card>div{min-width:0}
+.account-label{font-size:11px;color:#777;font-weight:900}
+.account-email{font-size:13px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.account-logout{border:2px solid var(--line);background:#fff;border-radius:10px;padding:7px 10px;font-weight:900}
+.setting-field{margin-bottom:12px}
+.setting-field label{display:block;font-size:12px;color:#555;font-weight:900;margin-bottom:5px}
+.setting-field input{width:100%;border:2px solid var(--line);border-radius:12px;padding:11px}
+.save-setting{width:100%;border:2px solid var(--line);background:#111;color:#fff;border-radius:13px;padding:12px;font-weight:900}
+.clear-setting{width:100%;border:2px solid #b33;background:#fff;color:#b33;border-radius:13px;padding:11px;font-weight:900;margin-top:9px}
+
+/* responsive */
+@media(max-width:390px){
+  .home-header{grid-template-columns:46px 1fr 78px;padding-left:12px;padding-right:12px}
+  #monthSelect{font-size:20px}
+  .stats-row{padding-left:20px;padding-right:20px;gap:18px}
+  .stat-number{font-size:25px}
+  .day-date,.day-net,.tx-name,.tx-amount{font-size:16px}
+  .list-wrap{padding-left:14px;padding-right:14px}
+  .category-grid{row-gap:20px}
+  .category-icon{width:52px;height:52px;font-size:31px}
+  .category-name{font-size:14px}
+  .entry-summary{min-height:84px;padding-left:10px;padding-right:10px}
+  .note-input{font-size:15px;padding-left:8px}
+  .calc-grid{grid-template-rows:repeat(4,58px);gap:7px}
+  .calc-btn{font-size:22px}
+}
+@media(max-width:340px){
+  .category-grid{grid-template-columns:repeat(3,1fr)}
+  .category-area{padding-bottom:245px}
+  .stats-row{padding-left:12px;padding-right:12px}
+}
+@media(min-width:700px){
+  body{background:#f2f2f2}
+  #mainApp{box-shadow:0 0 30px rgba(0,0,0,.08)}
+}
+</style>
 </head>
-<body>
 
+<body>
 <section id="authPage">
   <div class="auth-card">
     <div class="brand">
       <img src="./icon-192.png" alt="簡單記帳">
       <h1>簡單記帳</h1>
-      <p>每個帳號，都有自己的收支資料</p>
+      <p>登入後，每個帳號都有自己的資料</p>
     </div>
-
-    <div class="tabs">
+    <div class="auth-tabs">
       <button id="loginTab" class="active" type="button">登入</button>
       <button id="registerTab" type="button">註冊</button>
     </div>
-
     <form id="authForm">
-      <div class="field">
-        <label>電子郵件</label>
-        <input id="email" type="email" autocomplete="email" placeholder="name@example.com" required>
-      </div>
-      <div class="field">
-        <label>密碼</label>
-        <input id="password" type="password" autocomplete="current-password" minlength="6" placeholder="至少 6 個字元" required>
-      </div>
-      <button class="primary" id="authSubmit" type="submit">登入</button>
+      <div class="field"><label>電子郵件</label><input id="email" type="email" required autocomplete="email"></div>
+      <div class="field"><label>密碼</label><input id="password" type="password" minlength="6" required autocomplete="current-password"></div>
+      <button class="auth-submit" id="authSubmit" type="submit">登入</button>
     </form>
-
     <div class="auth-msg" id="authMsg"></div>
-
-    <div class="setup hidden" id="setupWarning">
-      Supabase 尚未設定。請先打開 <b>supabase-config.js</b>，
-      填入你的 Project URL 與 Publishable key。
-    </div>
+    <div class="setup hidden" id="setupWarning">Supabase 尚未設定，請先填寫 supabase-config.js。</div>
   </div>
 </section>
 
-<div id="mainApp" class="app hidden">
-  <header class="topbar">
-    <button class="icon-btn" id="settingsBtn" aria-label="設定">☰</button>
-    <select id="monthSelect" aria-label="選擇月份"></select>
-    <button class="icon-btn" id="thisMonthBtn" aria-label="回到本月">▣</button>
-  </header>
-<section class="period-card">
-    <div>
-      <div class="period-label">收入統計期間</div>
-      <div class="period-value" id="periodText">依目前月份統計</div>
-    </div>
-    <button class="small-btn" id="periodBtn">設定</button>
-  </section>
+<div id="mainApp" class="hidden">
 
-  <section class="summary">
-    <div class="summary-head">
-      <h2>收支總覽</h2>
-      <span class="chip" id="periodChip">本月</span>
-    </div>
-    <div class="summary-grid">
-      <div class="metric expense"><small>支出</small><strong id="expenseTotal">$0</strong></div>
+  <section id="homeView" class="view">
+    <header class="home-header">
+      <button class="menu-btn" id="settingsBtn" aria-label="設定">☰</button>
+      <div class="month-wrap"><select id="monthSelect"></select></div>
+      <div class="header-icons">
+        <button class="head-icon" type="button" aria-label="提醒">♢</button>
+        <button class="head-icon" id="thisMonthBtn" type="button" aria-label="本月">▣</button>
+      </div>
+    </header>
+
+    <section class="stats-row">
+      <div class="stat-box expense-stat">
+        <div class="stat-label">月支出 <span class="arrow">▶</span></div>
+        <div class="stat-number" id="expenseTotal">$0</div>
+      </div>
+      <div class="stat-box income-stat">
+        <div class="stat-label">月收入 <span class="arrow">▶</span></div>
+        <div class="stat-number" id="incomeTotal">$0</div>
+      </div>
+    </section>
+
+    <section class="chart-zone">
       <div class="donut-wrap">
         <div class="donut" id="donut"></div>
-        <div class="donut-center"><span>結餘</span><strong id="balanceTotal">$0</strong></div>
+        <div class="donut-center">
+          <div class="coins">🪙</div>
+          <div class="balance-label">月結餘</div>
+          <div class="balance-number" id="balanceTotal">$0</div>
+        </div>
       </div>
-      <div class="metric income"><small>收入</small><strong id="incomeTotal">$0</strong></div>
-    </div>
+    </section>
+
+    <div class="pager-dots"><b>●</b>●</div>
+
+    <main id="transactions" class="list-wrap"></main>
+
+    <button class="fab" id="addBtn" aria-label="新增">＋</button>
   </section>
 
-  <section class="quick-row">
-    <div class="quick-card">🍚 餐飲<span id="foodStat">$0</span></div>
-    <div class="quick-card">🚗 交通<span id="trafficStat">$0</span></div>
-    <div class="quick-card">🛍️ 購物<span id="shopStat">$0</span></div>
-  </section>
-
-  <div class="section-title">
-    <h3>明細</h3>
-    <button id="resetMonthBtn">回到本月</button>
-  </div>
-
-  <main class="transactions" id="transactions"></main>
-  <button class="fab" id="addBtn" aria-label="新增記帳">＋</button>
-</div>
-
-<div class="modal" id="entryModal">
-  <div class="sheet entry-sheet">
-    <div class="entry-top">
-      <button class="close entry-close" data-close="entryModal">×</button>
-      <div class="entry-type-tabs">
+  <section id="entryView" class="view hidden">
+    <header class="entry-header">
+      <button class="back-btn" id="entryBackBtn" type="button">‹</button>
+      <div class="entry-tabs">
         <button id="expenseTab" class="active" type="button">支出</button>
         <button id="incomeTab" type="button">收入</button>
       </div>
-      <div class="entry-spacer"></div>
-    </div>
+      <button class="more-btn" type="button">⋮</button>
+    </header>
 
-    <form id="entryForm">
-      <input type="hidden" id="entryType" value="expense">
-
-      <div class="amount-hero">
-        <span class="currency">$</span>
-        <input id="amount" type="number" inputmode="decimal" min="1" step="1" placeholder="0" required>
-      </div>
-
-      <div class="entry-date-row">
-        <button type="button" class="date-pill" id="dateQuickBtn">
-          <span>📅</span>
-          <span id="dateLabel">今天</span>
-        </button>
-        <input id="date" type="date" required>
-      </div>
-
-      <div class="category-title">選擇分類</div>
+    <main class="category-area">
       <div id="categoryGrid" class="category-grid"></div>
-      <select id="category" class="hidden" aria-hidden="true"></select>
+    </main>
 
-      <div class="entry-detail-card">
-        <div class="detail-line">
-          <span class="detail-icon">✏️</span>
-          <input id="title" maxlength="30" placeholder="輸入項目，例如：午餐" required>
+    <section class="entry-bottom">
+      <div class="entry-summary">
+        <div class="selected-mini" id="selectedMini">🍚</div>
+        <div>
+          <span class="currency-pill">TWD</span>
+          <span class="entry-money" id="entryMoney">$ 0</span>
         </div>
-        <div class="detail-line">
-          <span class="detail-icon">💬</span>
-          <input id="note" maxlength="80" placeholder="備註（可不填）">
-        </div>
+        <input class="note-input" id="entryNote" maxlength="80" placeholder="輸入備註">
+        <div class="selected-tag" id="selectedTag">餐飲</div>
       </div>
 
-      <button class="entry-save" type="submit">記一筆</button>
-    </form>
-  </div>
+      <div class="keypad">
+        <div class="date-bar">
+          <button class="date-nav" id="prevDate" type="button">◀</button>
+          <button class="date-main" id="dateMainBtn" type="button">📅 今天</button>
+          <button class="date-nav" id="nextDate" type="button">▶</button>
+          <input id="entryDate" type="date">
+        </div>
+
+        <div class="calc-grid">
+          <button class="calc-btn" data-key="7">7</button>
+          <button class="calc-btn" data-key="8">8</button>
+          <button class="calc-btn" data-key="9">9</button>
+          <button class="calc-btn blue" data-key="/">÷</button>
+          <button class="calc-btn blue" data-key="AC">AC</button>
+
+          <button class="calc-btn" data-key="4">4</button>
+          <button class="calc-btn" data-key="5">5</button>
+          <button class="calc-btn" data-key="6">6</button>
+          <button class="calc-btn blue" data-key="*">×</button>
+          <button class="calc-btn blue back" data-key="BACK">←</button>
+
+          <button class="calc-btn" data-key="1">1</button>
+          <button class="calc-btn" data-key="2">2</button>
+          <button class="calc-btn" data-key="3">3</button>
+          <button class="calc-btn blue" data-key="+">+</button>
+          <button class="calc-btn red" id="entrySaveBtn" type="button">OK</button>
+
+          <button class="calc-btn" data-key="00">00</button>
+          <button class="calc-btn" data-key="0">0</button>
+          <button class="calc-btn" data-key=".">.</button>
+          <button class="calc-btn blue" data-key="-">-</button>
+        </div>
+      </div>
+    </section>
+  </section>
 </div>
 
 <div class="modal" id="settingsModal">
   <div class="sheet">
-    <div class="sheet-head"><h3>設定</h3><button class="close" data-close="settingsModal">×</button></div>
+    <div class="sheet-head">
+      <h3>設定</h3>
+      <button class="close" data-close="settingsModal">×</button>
+    </div>
+
     <div class="account-card">
       <div>
         <div class="account-label">目前帳號</div>
@@ -742,81 +391,83 @@
       </div>
       <button class="account-logout" id="logoutBtn" type="button">登出</button>
     </div>
-    <div class="form-row"><label>收入期間開始日</label><input id="periodStart" type="date"></div>
-    <div class="form-row"><label>收入期間結束日</label><input id="periodEnd" type="date"></div>
-    <p class="hint">設定後，首頁會依這個起訖日計算收入、支出與結餘。清除後則回到月份統計。</p>
-    <button class="primary" id="saveSettings" type="button" style="background:#222">儲存期間</button>
-    <button class="danger" id="clearPeriod" type="button">清除收入期間</button>
+
+    <div class="setting-field">
+      <label>收入期間開始日</label>
+      <input id="periodStart" type="date">
+    </div>
+    <div class="setting-field">
+      <label>收入期間結束日</label>
+      <input id="periodEnd" type="date">
+    </div>
+    <button class="save-setting" id="saveSettings" type="button">儲存收入期間</button>
+    <button class="clear-setting" id="clearPeriod" type="button">清除收入期間</button>
   </div>
 </div>
 
 <script src="./supabase-config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
 (() => {
   const $ = s => document.querySelector(s);
   const cfg = window.SUPABASE_CONFIG || {};
-  const configured =
-    cfg.url &&
-    cfg.key &&
-    !String(cfg.url).includes("請填入") &&
-    !String(cfg.key).includes("請填入");
+  const configured = cfg.url && cfg.key && !String(cfg.url).includes("請填入") && !String(cfg.key).includes("請填入");
 
-  const money = n => "$" + Math.round(Number(n || 0)).toLocaleString("zh-TW");
   const pad = n => String(n).padStart(2,"0");
-  const toISO = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const money = n => "$" + Math.round(Number(n||0)).toLocaleString("zh-TW");
+  const localISO = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
   const parseDate = s => {
     if(!s) return null;
-    const [y,m,d] = s.split("-").map(Number);
+    const [y,m,d]=s.split("-").map(Number);
     return new Date(y,m-1,d,12);
   };
+  const esc = v => String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
 
-  let client = null;
-  let user = null;
-  let entries = [];
-  let authMode = "login";
-  const now = new Date();
-  let settings = {
-    periodStart:"",
-    periodEnd:"",
-    selectedMonth:`${now.getFullYear()}-${pad(now.getMonth()+1)}`
-  };
+  let client=null,user=null,entries=[],authMode="login";
+  const now=new Date();
+  let settings={periodStart:"",periodEnd:"",selectedMonth:`${now.getFullYear()}-${pad(now.getMonth()+1)}`};
 
   const categories = {
-    expense:[["餐飲","🍚"],["早餐","🥪"],["午餐","🍱"],["晚餐","🍜"],["交通","🚗"],["購物","🛍️"],["娛樂","🎮"],["居家","🏠"],["帳單","🧾"],["醫療","💊"],["禮物","🎁"],["其他","📌"]],
-    income:[["薪水","💰"],["獎金","🧧"],["兼職","💼"],["投資","📈"],["退款","↩️"],["其他收入","💵"]]
+    expense:[
+      ["新增分類","＋"],["早餐","🍞"],["午餐","🍜"],["晚餐","🍴"],
+      ["飲品","☕"],["點心","🍪"],["酒類","🍸"],["交通","🚌"],
+      ["購物","🛍️"],["娛樂","🎮"],["日用品","🛒"],["房租","🏠"],
+      ["帳單","🧾"],["醫療","💊"],["禮物","🎁"],["其他","📌"]
+    ],
+    income:[
+      ["新增分類","＋"],["薪水","💰"],["獎金","🧧"],["兼職","💼"],
+      ["投資","📈"],["退款","↩️"],["紅包","🎁"],["其他收入","💵"]
+    ]
   };
+
+  let entryType="expense";
+  let selectedCategory={name:"早餐",icon:"🍞"};
+  let calcExpr="";
+  let calcValue=0;
+  let entryDate=new Date();
 
   if(!configured){
     $("#setupWarning").classList.remove("hidden");
-    $("#authSubmit").disabled = true;
-    $("#authSubmit").style.opacity = ".5";
-  } else {
-    client = window.supabase.createClient(cfg.url, cfg.key, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true
-      }
+    $("#authSubmit").disabled=true;
+    $("#authSubmit").style.opacity=".5";
+  }else{
+    client=window.supabase.createClient(cfg.url,cfg.key,{
+      auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}
     });
-
     initAuth();
   }
 
   async function initAuth(){
-    const { data } = await client.auth.getSession();
+    const {data}=await client.auth.getSession();
     await applySession(data.session);
-
-    client.auth.onAuthStateChange(async (_event, session) => {
-      await applySession(session);
-    });
+    client.auth.onAuthStateChange(async(_event,session)=>{await applySession(session)});
   }
 
   async function applySession(session){
-    user = session?.user || null;
-
+    user=session?.user||null;
     if(!user){
-      entries = [];
+      entries=[];
       $("#mainApp").classList.add("hidden");
       $("#authPage").classList.remove("hidden");
       return;
@@ -824,419 +475,404 @@
 
     $("#authPage").classList.add("hidden");
     $("#mainApp").classList.remove("hidden");
-    $("#userEmail").textContent = user.email || user.id;
-
-    await Promise.all([loadSettings(), loadEntries()]);
+    $("#userEmail").textContent=user.email||user.id;
+    await Promise.all([loadSettings(),loadEntries()]);
     buildMonthOptions();
-    render();
+    showHome();
+    renderHome();
   }
 
   function setAuthMode(mode){
-    authMode = mode;
+    authMode=mode;
     $("#loginTab").classList.toggle("active",mode==="login");
     $("#registerTab").classList.toggle("active",mode==="register");
-    $("#authSubmit").textContent = mode==="login" ? "登入" : "建立帳號";
-    $("#password").autocomplete = mode==="login" ? "current-password" : "new-password";
-    $("#authMsg").textContent = "";
+    $("#authSubmit").textContent=mode==="login"?"登入":"建立帳號";
+    $("#authMsg").textContent="";
   }
 
-  $("#loginTab").onclick = () => setAuthMode("login");
-  $("#registerTab").onclick = () => setAuthMode("register");
+  $("#loginTab").onclick=()=>setAuthMode("login");
+  $("#registerTab").onclick=()=>setAuthMode("register");
 
-  $("#authForm").addEventListener("submit", async e => {
+  $("#authForm").addEventListener("submit",async e=>{
     e.preventDefault();
-    if(!client) return;
-
-    const email = $("#email").value.trim();
-    const password = $("#password").value;
-    $("#authMsg").textContent = "處理中…";
-
+    const email=$("#email").value.trim();
+    const password=$("#password").value;
+    $("#authMsg").textContent="處理中…";
     try{
-      if(authMode === "register"){
-        const { data, error } = await client.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: window.location.href.split("#")[0]
-          }
+      if(authMode==="register"){
+        const {data,error}=await client.auth.signUp({
+          email,password,
+          options:{emailRedirectTo:window.location.href.split("#")[0]}
         });
         if(error) throw error;
-
         if(!data.session){
-          $("#authMsg").style.color = "#276749";
-          $("#authMsg").textContent = "註冊成功，請先到信箱完成 Email 驗證，再回來登入。";
-        }else{
-          $("#authMsg").textContent = "";
-        }
+          $("#authMsg").style.color="#287a4a";
+          $("#authMsg").textContent="註冊成功，請先到信箱完成驗證。";
+        }else $("#authMsg").textContent="";
       }else{
-        const { error } = await client.auth.signInWithPassword({ email, password });
+        const {error}=await client.auth.signInWithPassword({email,password});
         if(error) throw error;
-        $("#authMsg").textContent = "";
+        $("#authMsg").textContent="";
       }
     }catch(err){
-      $("#authMsg").style.color = "#b33";
-      const message = String(err.message || "");
-      if(message.toLowerCase().includes("invalid login credentials")){
-        $("#authMsg").textContent = "Email 或密碼不正確";
-      }else if(message.toLowerCase().includes("email not confirmed")){
-        $("#authMsg").textContent = "請先完成 Email 驗證";
-      }else if(message.toLowerCase().includes("password")){
-        $("#authMsg").textContent = "密碼至少需要 6 個字元";
-      }else{
-        $("#authMsg").textContent = "登入/註冊失敗：" + message;
-      }
+      $("#authMsg").style.color="#b33";
+      const m=String(err.message||"");
+      $("#authMsg").textContent=
+        m.toLowerCase().includes("invalid login")?"Email 或密碼不正確":
+        m.toLowerCase().includes("email not confirmed")?"請先完成 Email 驗證":
+        "登入/註冊失敗："+m;
     }
   });
 
-  $("#logoutBtn").onclick = async () => {
-    if(client) await client.auth.signOut();
-  };
+  $("#logoutBtn").onclick=async()=>{await client.auth.signOut()};
 
   async function loadEntries(){
-    const { data, error } = await client
-      .from("entries")
-      .select("*")
-      .eq("user_id", user.id)
-      .order("entry_date", { ascending:false })
-      .order("created_at", { ascending:false });
-
-    if(error){
-      console.error(error);
-      alert("讀取記帳資料失敗，請確認已執行 supabase-setup.sql。");
-      entries = [];
-      return;
-    }
-
-    entries = (data || []).map(row => ({
-      id: row.id,
-      type: row.type,
-      amount: Number(row.amount),
-      date: row.entry_date,
-      category: row.category,
-      title: row.title,
-      note: row.note || ""
+    const {data,error}=await client.from("entries")
+      .select("*").eq("user_id",user.id)
+      .order("entry_date",{ascending:false}).order("created_at",{ascending:false});
+    if(error){console.error(error);alert("讀取資料失敗："+error.message);return}
+    entries=(data||[]).map(r=>({
+      id:r.id,type:r.type,amount:Number(r.amount),date:r.entry_date,
+      category:r.category,title:r.title,note:r.note||""
     }));
   }
 
   async function loadSettings(){
-    const { data, error } = await client
-      .from("user_settings")
-      .select("*")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if(error){
-      console.error(error);
-      return;
-    }
-
+    const {data,error}=await client.from("user_settings").select("*").eq("user_id",user.id).maybeSingle();
+    if(error){console.error(error);return}
     if(data){
-      settings.periodStart = data.period_start || "";
-      settings.periodEnd = data.period_end || "";
-      settings.selectedMonth = data.selected_month || settings.selectedMonth;
+      settings.periodStart=data.period_start||"";
+      settings.periodEnd=data.period_end||"";
+      settings.selectedMonth=data.selected_month||settings.selectedMonth;
     }
   }
 
   async function saveSettingsCloud(){
-    const { error } = await client
-      .from("user_settings")
-      .upsert({
-        user_id: user.id,
-        period_start: settings.periodStart || null,
-        period_end: settings.periodEnd || null,
-        selected_month: settings.selectedMonth,
-        updated_at: new Date().toISOString()
-      }, { onConflict:"user_id" });
-
-    if(error){
-      console.error(error);
-      alert("儲存設定失敗：" + error.message);
-      throw error;
-    }
+    const {error}=await client.from("user_settings").upsert({
+      user_id:user.id,
+      period_start:settings.periodStart||null,
+      period_end:settings.periodEnd||null,
+      selected_month:settings.selectedMonth,
+      updated_at:new Date().toISOString()
+    },{onConflict:"user_id"});
+    if(error) throw error;
   }
 
   function buildMonthOptions(){
-    const sel = $("#monthSelect");
-    sel.innerHTML = "";
-    const base = new Date();
-
-    for(let i=-18;i<=12;i++){
-      const d = new Date(base.getFullYear(),base.getMonth()+i,1);
-      const val = `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
-      const opt = document.createElement("option");
-      opt.value = val;
-      opt.textContent = `${d.getFullYear()} 年 ${d.getMonth()+1} 月`;
-      if(val===settings.selectedMonth) opt.selected = true;
-      sel.appendChild(opt);
+    const sel=$("#monthSelect");
+    sel.innerHTML="";
+    const base=new Date();
+    for(let i=-24;i<=12;i++){
+      const d=new Date(base.getFullYear(),base.getMonth()+i,1);
+      const val=`${d.getFullYear()}-${pad(d.getMonth()+1)}`;
+      const o=document.createElement("option");
+      o.value=val;o.textContent=`${d.getFullYear()}年 ${d.getMonth()+1}月`;
+      if(val===settings.selectedMonth)o.selected=true;
+      sel.appendChild(o);
     }
   }
 
   function getRange(){
-    if(settings.periodStart && settings.periodEnd){
-      const s = parseDate(settings.periodStart);
-      const e = parseDate(settings.periodEnd);
-      if(s && e && s<=e) return [s,e,"自訂期間"];
+    if(settings.periodStart&&settings.periodEnd){
+      const s=parseDate(settings.periodStart),e=parseDate(settings.periodEnd);
+      if(s&&e&&s<=e)return[s,e];
     }
-
-    const [y,m] = settings.selectedMonth.split("-").map(Number);
-    return [new Date(y,m-1,1),new Date(y,m,0,23,59,59),"本月"];
+    const [y,m]=settings.selectedMonth.split("-").map(Number);
+    return[new Date(y,m-1,1),new Date(y,m,0,23,59,59)];
   }
 
-  function render(){
-    const [start,end,label] = getRange();
-    const list = entries
-      .filter(e => {
-        const d = parseDate(e.date);
-        return d && d>=start && d<=end;
-      })
-      .sort((a,b) => b.date.localeCompare(a.date));
+  function renderHome(){
+    const [start,end]=getRange();
+    const list=entries.filter(e=>{
+      const d=parseDate(e.date);
+      return d&&d>=start&&d<=end;
+    }).sort((a,b)=>b.date.localeCompare(a.date));
 
-    const income = list.filter(e=>e.type==="income").reduce((s,e)=>s+Number(e.amount),0);
-    const expense = list.filter(e=>e.type==="expense").reduce((s,e)=>s+Number(e.amount),0);
-    const balance = income-expense;
+    const income=list.filter(e=>e.type==="income").reduce((s,e)=>s+e.amount,0);
+    const expense=list.filter(e=>e.type==="expense").reduce((s,e)=>s+e.amount,0);
+    const balance=income-expense;
 
-    $("#incomeTotal").textContent = money(income);
-    $("#expenseTotal").textContent = money(expense);
-    $("#balanceTotal").textContent = money(balance);
-    $("#periodChip").textContent = label;
+    $("#incomeTotal").textContent=money(income);
+    $("#expenseTotal").textContent=money(expense);
+    $("#balanceTotal").textContent=money(balance);
 
-    if(settings.periodStart && settings.periodEnd){
-      const s=parseDate(settings.periodStart), e=parseDate(settings.periodEnd);
-      $("#periodText").textContent = `${s.getMonth()+1}/${s.getDate()} ～ ${e.getMonth()+1}/${e.getDate()}`;
-    }else{
-      $("#periodText").textContent = "依目前月份統計";
-    }
+    const total=income+expense;
+    const incomeDeg=total?income/total*360:270;
+    $("#donut").style.background=total
+      ?`conic-gradient(var(--blue) 0deg ${incomeDeg}deg,#fff ${incomeDeg}deg ${incomeDeg+3}deg,var(--yellow) ${incomeDeg+3}deg 357deg,#fff 357deg 360deg)`
+      :"conic-gradient(#eee 0deg 360deg)";
 
-    const total = income+expense;
-    const deg = total ? income/total*360 : 180;
-    $("#donut").style.background = total
-      ? `conic-gradient(var(--blue) 0deg ${deg}deg,var(--yellow) ${deg}deg 360deg)`
-      : "conic-gradient(#ddd 0deg 360deg)";
-
-    const sumCat = names => list
-      .filter(e=>e.type==="expense"&&names.includes(e.category))
-      .reduce((s,e)=>s+Number(e.amount),0);
-
-    $("#foodStat").textContent = money(sumCat(["餐飲","早餐","午餐","晚餐"]));
-    $("#trafficStat").textContent = money(sumCat(["交通"]));
-    $("#shopStat").textContent = money(sumCat(["購物"]));
-
-    const groups = {};
-    list.forEach(e => (groups[e.date] ||= []).push(e));
-    const box = $("#transactions");
+    const groups={};
+    list.forEach(e=>(groups[e.date]??=[]).push(e));
+    const box=$("#transactions");
 
     if(!list.length){
-      box.innerHTML = `<div class="empty">這個期間還沒有資料<br>按下「＋」新增第一筆記帳。</div>`;
+      box.innerHTML=`<div class="empty">這個月份還沒有記帳資料<br>按下「＋」新增第一筆。</div>`;
       return;
     }
 
-    box.innerHTML = Object.keys(groups).sort().reverse().map(date => {
-      const day = groups[date];
-      const d = parseDate(date);
-      const wd = ["日","一","二","三","四","五","六"][d.getDay()];
-      const net = day.reduce((s,e)=>s+(e.type==="income"?Number(e.amount):-Number(e.amount)),0);
+    box.innerHTML=Object.keys(groups).sort().reverse().map(date=>{
+      const day=groups[date];
+      const d=parseDate(date);
+      const wd=["日","一","二","三","四","五","六"][d.getDay()];
+      const net=day.reduce((s,e)=>s+(e.type==="income"?e.amount:-e.amount),0);
 
-      return `<section class="day-group">
+      return `<section class="day-card">
         <div class="day-head">
-          <span>${date.replaceAll("-","/")} 星期${wd}</span>
-          <span>${net>=0?"+":""}${money(net)}</span>
+          <span class="day-date">${date.replaceAll("-","/")} 星期${wd}</span>
+          <span class="day-net">${net>=0?"+":""}${money(net)}</span>
         </div>
-        ${day.map(e => `<div class="tx">
-          <div class="emoji">${iconFor(e.category,e.type)}</div>
-          <div>
-            <div class="tx-name">${esc(e.title)}</div>
-            <div class="tx-note">${esc(e.category)}${e.note?" · "+esc(e.note):""}</div>
-          </div>
-          <div class="tx-amount ${e.type==="income"?"inc":""}">
-            ${e.type==="income"?"+":"-"}${money(e.amount)}
-          </div>
-          <button class="delete-btn" data-delete="${e.id}" aria-label="刪除">×</button>
-        </div>`).join("")}
+        ${day.map(e=>`
+          <div class="tx-row" data-id="${e.id}">
+            <div class="tx-icon">${iconFor(e.category,e.type)}</div>
+            <div>
+              <div class="tx-name">${esc(e.category||e.title)}</div>
+              ${e.note?`<div class="tx-note">${esc(e.note)}</div>`:""}
+            </div>
+            <div class="tx-amount ${e.type==="income"?"income":""}">
+              ${e.type==="income"?"+":"-"}${money(e.amount)}
+            </div>
+          </div>`).join("")}
       </section>`;
     }).join("");
 
-    box.querySelectorAll("[data-delete]").forEach(btn => {
-      btn.onclick = async () => {
-        if(!confirm("要刪除這筆記帳嗎？")) return;
-
-        const { error } = await client
-          .from("entries")
-          .delete()
-          .eq("id", btn.dataset.delete)
-          .eq("user_id", user.id);
-
-        if(error){
-          alert("刪除失敗：" + error.message);
-          return;
+    box.querySelectorAll(".tx-row").forEach(row=>{
+      let timer;
+      row.addEventListener("touchstart",()=>{
+        timer=setTimeout(async()=>{
+          if(confirm("要刪除這筆記帳嗎？")){
+            const {error}=await client.from("entries").delete().eq("id",row.dataset.id).eq("user_id",user.id);
+            if(!error){await loadEntries();renderHome()}
+          }
+        },700);
+      },{passive:true});
+      row.addEventListener("touchend",()=>clearTimeout(timer));
+      row.addEventListener("contextmenu",async e=>{
+        e.preventDefault();
+        if(confirm("要刪除這筆記帳嗎？")){
+          const {error}=await client.from("entries").delete().eq("id",row.dataset.id).eq("user_id",user.id);
+          if(!error){await loadEntries();renderHome()}
         }
-
-        await loadEntries();
-        render();
-      };
+      });
     });
   }
 
   function iconFor(category,type){
-    return (categories[type].find(x=>x[0]===category)||["","📌"])[1];
+    const list=categories[type]||[];
+    const found=list.find(x=>x[0]===category);
+    return found?found[1]:(type==="income"?"💰":"📌");
   }
 
-  function esc(v=""){
-    return String(v).replace(/[&<>"']/g,c=>({
-      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-    }[c]));
+  function showHome(){
+    $("#entryView").classList.add("hidden");
+    $("#homeView").classList.remove("hidden");
   }
 
-  function openModal(id){ $("#"+id).classList.add("show"); }
-  function closeModal(id){ $("#"+id).classList.remove("show"); }
-
-  document.querySelectorAll("[data-close]").forEach(b => {
-    b.onclick = () => closeModal(b.dataset.close);
-  });
-
-  document.querySelectorAll(".modal").forEach(m => {
-    m.onclick = e => { if(e.target===m) closeModal(m.id); };
-  });
+  function openEntry(){
+    entryType="expense";
+    calcExpr="";
+    calcValue=0;
+    entryDate=new Date();
+    $("#entryNote").value="";
+    setEntryType("expense");
+    updateCalcDisplay();
+    updateDateDisplay();
+    $("#homeView").classList.add("hidden");
+    $("#entryView").classList.remove("hidden");
+    window.scrollTo(0,0);
+  }
 
   function setEntryType(type){
-    $("#entryType").value=type;
+    entryType=type;
     $("#expenseTab").classList.toggle("active",type==="expense");
     $("#incomeTab").classList.toggle("active",type==="income");
+    $("#incomeTab").classList.toggle("income-active",type==="income");
+    renderCategories();
+  }
 
-    $("#category").innerHTML = categories[type]
-      .map(([n,i])=>`<option value="${n}">${i} ${n}</option>`)
-      .join("");
+  function renderCategories(){
+    const list=categories[entryType];
+    const usable=list.filter(x=>x[0]!=="新增分類");
+    if(!usable.some(x=>x[0]===selectedCategory.name)){
+      selectedCategory={name:usable[0][0],icon:usable[0][1]};
+    }
 
-    $("#categoryGrid").innerHTML = categories[type]
-      .map(([name,emoji],idx)=>`
-        <button type="button" class="category-item ${idx===0?"selected":""}" data-category="${esc(name)}">
-          <span class="category-bubble">${emoji}</span>
-          <span>${esc(name)}</span>
-        </button>
-      `).join("");
-
-    $("#category").value = categories[type][0][0];
+    $("#categoryGrid").innerHTML=list.map(([name,icon])=>{
+      const add=name==="新增分類";
+      const selected=!add&&name===selectedCategory.name;
+      return `<button type="button" class="category-item ${add?"add-cat":""} ${selected?"selected":""}" data-name="${esc(name)}" data-icon="${esc(icon)}">
+        <span class="category-icon">${icon}</span>
+        <span class="category-name">${esc(name)}</span>
+      </button>`;
+    }).join("");
 
     $("#categoryGrid").querySelectorAll(".category-item").forEach(btn=>{
       btn.onclick=()=>{
-        $("#categoryGrid").querySelectorAll(".category-item").forEach(x=>x.classList.remove("selected"));
-        btn.classList.add("selected");
-        $("#category").value=btn.dataset.category;
+        if(btn.dataset.name==="新增分類"){
+          alert("自訂分類之後可以再幫你加上。");
+          return;
+        }
+        selectedCategory={name:btn.dataset.name,icon:btn.dataset.icon};
+        renderCategories();
+        updateEntrySummary();
       };
     });
+    updateEntrySummary();
   }
 
+  function updateEntrySummary(){
+    $("#selectedMini").textContent=selectedCategory.icon;
+    $("#selectedTag").textContent=selectedCategory.name;
+  }
+
+  function updateCalcDisplay(){
+    $("#entryMoney").textContent="$ "+formatCalc(calcExpr||String(calcValue||0));
+  }
+
+  function formatCalc(v){
+    if(/[+\-*/]/.test(v)) return v.replace("*","×").replace("/","÷");
+    const n=Number(v||0);
+    if(!Number.isFinite(n))return "0";
+    return Number.isInteger(n)?n.toLocaleString("zh-TW"):String(n);
+  }
+
+  function safeEvaluate(expr){
+    if(!expr||!/[0-9]/.test(expr))return 0;
+    if(!/^[0-9+\-*/. ]+$/.test(expr))return 0;
+    try{
+      const fn=Function('"use strict";return ('+expr+')');
+      const v=Number(fn());
+      return Number.isFinite(v)?v:0;
+    }catch{return 0}
+  }
+
+  function handleCalcKey(key){
+    if(key==="AC"){
+      calcExpr="";calcValue=0;updateCalcDisplay();return;
+    }
+    if(key==="BACK"){
+      calcExpr=calcExpr.slice(0,-1);updateCalcDisplay();return;
+    }
+    if(["+","-","*","/"].includes(key)){
+      if(!calcExpr) calcExpr=String(calcValue||0);
+      if(/[+\-*/.]$/.test(calcExpr))calcExpr=calcExpr.slice(0,-1);
+      calcExpr+=key;updateCalcDisplay();return;
+    }
+    if(key==="."){
+      const part=calcExpr.split(/[+\-*/]/).pop();
+      if(part.includes("."))return;
+      if(!part)calcExpr+="0";
+      calcExpr+=".";updateCalcDisplay();return;
+    }
+    if(calcExpr==="0")calcExpr="";
+    calcExpr+=key;
+    updateCalcDisplay();
+  }
+
+  function updateDateDisplay(){
+    const today=localISO(new Date());
+    const iso=localISO(entryDate);
+    const wd=["日","一","二","三","四","五","六"][entryDate.getDay()];
+    $("#entryDate").value=iso;
+    $("#dateMainBtn").textContent=iso===today
+      ?`📅 今天 ${entryDate.getFullYear()}/${pad(entryDate.getMonth()+1)}/${pad(entryDate.getDate())} 星期${wd}`
+      :`📅 ${entryDate.getFullYear()}/${pad(entryDate.getMonth()+1)}/${pad(entryDate.getDate())} 星期${wd}`;
+  }
+
+  async function saveEntry(){
+    const amount=Math.abs(safeEvaluate(calcExpr||String(calcValue||0)));
+    if(!amount){alert("請先輸入金額");return}
+    const note=$("#entryNote").value.trim();
+
+    const {error}=await client.from("entries").insert({
+      user_id:user.id,
+      type:entryType,
+      amount,
+      entry_date:localISO(entryDate),
+      category:selectedCategory.name,
+      title:selectedCategory.name,
+      note
+    });
+
+    if(error){alert("新增失敗："+error.message);return}
+    await loadEntries();
+    renderHome();
+    showHome();
+  }
+
+  $("#addBtn").onclick=openEntry;
+  $("#entryBackBtn").onclick=showHome;
   $("#expenseTab").onclick=()=>setEntryType("expense");
   $("#incomeTab").onclick=()=>setEntryType("income");
+  $("#entrySaveBtn").onclick=saveEntry;
 
-  $("#addBtn").onclick=()=>{
-    $("#entryForm").reset();
-    setEntryType("expense");
-    const today = toISO(new Date());
-    $("#date").value=today;
-    $("#dateLabel").textContent="今天";
-    openModal("entryModal");
-    setTimeout(()=>$("#amount").focus(),120);
-  };
-
-  $("#dateQuickBtn").onclick=()=>{
-    if(typeof $("#date").showPicker==="function"){
-      $("#date").showPicker();
-    }else{
-      $("#date").click();
-    }
-  };
-
-  $("#date").addEventListener("change",()=>{
-    const today=toISO(new Date());
-    $("#dateLabel").textContent=$("#date").value===today ? "今天" : $("#date").value.replaceAll("-","/");
+  document.querySelectorAll(".calc-btn[data-key]").forEach(btn=>{
+    btn.onclick=()=>handleCalcKey(btn.dataset.key);
   });
 
-  $("#entryForm").addEventListener("submit",async e=>{
-    e.preventDefault();
-
-    const amount=Number($("#amount").value);
-    if(amount<=0) return alert("請輸入正確金額");
-
-    const { error } = await client
-      .from("entries")
-      .insert({
-        user_id:user.id,
-        type:$("#entryType").value,
-        amount,
-        entry_date:$("#date").value,
-        category:$("#category").value,
-        title:$("#title").value.trim(),
-        note:$("#note").value.trim()
-      });
-
-    if(error){
-      alert("新增失敗：" + error.message);
-      return;
-    }
-
-    closeModal("entryModal");
-    await loadEntries();
-    render();
+  $("#prevDate").onclick=()=>{entryDate.setDate(entryDate.getDate()-1);updateDateDisplay()};
+  $("#nextDate").onclick=()=>{entryDate.setDate(entryDate.getDate()+1);updateDateDisplay()};
+  $("#dateMainBtn").onclick=()=>{
+    const input=$("#entryDate");
+    if(typeof input.showPicker==="function")input.showPicker();else input.click();
+  };
+  $("#entryDate").addEventListener("change",()=>{
+    const d=parseDate($("#entryDate").value);
+    if(d){entryDate=d;updateDateDisplay()}
   });
-
-  function openSettings(){
-    $("#periodStart").value=settings.periodStart||"";
-    $("#periodEnd").value=settings.periodEnd||"";
-    openModal("settingsModal");
-  }
-
-  $("#settingsBtn").onclick=openSettings;
-  $("#periodBtn").onclick=openSettings;
-
-  $("#saveSettings").onclick=async()=>{
-    const s=$("#periodStart").value;
-    const e=$("#periodEnd").value;
-
-    if((s&&!e)||(!s&&e)) return alert("開始日與結束日都要設定");
-    if(s&&e&&parseDate(s)>parseDate(e)) return alert("開始日不能晚於結束日");
-
-    settings.periodStart=s;
-    settings.periodEnd=e;
-    await saveSettingsCloud();
-    closeModal("settingsModal");
-    render();
-  };
-
-  $("#clearPeriod").onclick=async()=>{
-    settings.periodStart="";
-    settings.periodEnd="";
-    await saveSettingsCloud();
-    closeModal("settingsModal");
-    render();
-  };
 
   $("#monthSelect").onchange=async e=>{
     settings.selectedMonth=e.target.value;
-    settings.periodStart="";
-    settings.periodEnd="";
-    await saveSettingsCloud();
-    render();
+    settings.periodStart="";settings.periodEnd="";
+    try{await saveSettingsCloud()}catch(err){console.error(err)}
+    renderHome();
   };
 
-  async function goThisMonth(){
+  $("#thisMonthBtn").onclick=async()=>{
     const d=new Date();
     settings.selectedMonth=`${d.getFullYear()}-${pad(d.getMonth()+1)}`;
-    settings.periodStart="";
-    settings.periodEnd="";
-    await saveSettingsCloud();
+    settings.periodStart="";settings.periodEnd="";
     buildMonthOptions();
-    render();
-  }
+    try{await saveSettingsCloud()}catch(err){console.error(err)}
+    renderHome();
+  };
 
-  $("#thisMonthBtn").onclick=goThisMonth;
-  $("#resetMonthBtn").onclick=goThisMonth;
+  function openModal(id){$("#"+id).classList.add("show")}
+  function closeModal(id){$("#"+id).classList.remove("show")}
+  document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>closeModal(b.dataset.close));
+  document.querySelectorAll(".modal").forEach(m=>m.onclick=e=>{if(e.target===m)closeModal(m.id)});
 
-  setEntryType("expense");
+  $("#settingsBtn").onclick=()=>{
+    $("#periodStart").value=settings.periodStart||"";
+    $("#periodEnd").value=settings.periodEnd||"";
+    openModal("settingsModal");
+  };
+
+  $("#saveSettings").onclick=async()=>{
+    const s=$("#periodStart").value,e=$("#periodEnd").value;
+    if((s&&!e)||(!s&&e)){alert("開始日與結束日都要設定");return}
+    if(s&&e&&parseDate(s)>parseDate(e)){alert("開始日不能晚於結束日");return}
+    settings.periodStart=s;settings.periodEnd=e;
+    try{
+      await saveSettingsCloud();
+      closeModal("settingsModal");renderHome();
+    }catch(err){alert("儲存失敗："+err.message)}
+  };
+
+  $("#clearPeriod").onclick=async()=>{
+    settings.periodStart="";settings.periodEnd="";
+    try{
+      await saveSettingsCloud();
+      closeModal("settingsModal");renderHome();
+    }catch(err){alert("清除失敗："+err.message)}
+  };
+
+  renderCategories();
+  updateCalcDisplay();
+  updateDateDisplay();
 
   if("serviceWorker" in navigator){
-    window.addEventListener("load",()=>{
-      navigator.serviceWorker.register("./sw.js").catch(console.error);
-    });
+    window.addEventListener("load",()=>navigator.serviceWorker.register("./sw.js").catch(console.error));
   }
 })();
 </script>
