@@ -376,6 +376,285 @@ button {
   }
 }
 
+
+/* ===== 2026-09-28 iPhone compact proportions ===== */
+
+/* 新增頁頂部：改成接近參考 App 的高度與比例 */
+.entry-header{
+  height:calc(50px + env(safe-area-inset-top)) !important;
+  grid-template-columns:46px 1fr 46px !important;
+  align-items:end !important;
+  padding:env(safe-area-inset-top) 14px 7px !important;
+}
+
+.back-btn,
+.more-btn{
+  color:#111 !important;
+}
+
+.back-btn{
+  font-size:34px !important;
+}
+
+.more-btn{
+  font-size:25px !important;
+}
+
+/* 支出 / 收入切換：原本太寬，固定成較接近原版 */
+.entry-tabs{
+  width:172px !important;
+  max-width:172px !important;
+  height:34px !important;
+  border:2px solid var(--line) !important;
+  border-radius:10px !important;
+  overflow:hidden !important;
+}
+
+.entry-tabs button{
+  width:50% !important;
+  height:100% !important;
+  padding:0 !important;
+  margin:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  background:#fff !important;
+  color:#333 !important;
+  font-size:16px !important;
+  font-weight:800 !important;
+  line-height:1 !important;
+}
+
+.entry-tabs #expenseTab.active{
+  background:var(--yellow) !important;
+  color:#222 !important;
+}
+
+.entry-tabs #incomeTab.income-active,
+.entry-tabs #incomeTab.active{
+  background:var(--blue) !important;
+  color:#fff !important;
+}
+
+/* 分類區縮小 */
+.category-area{
+  padding:31px 14px 465px !important;
+}
+
+.category-grid{
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  column-gap:6px !important;
+  row-gap:22px !important;
+}
+
+.category-item{
+  min-width:0 !important;
+  color:#333 !important;
+}
+
+.category-icon{
+  width:38px !important;
+  height:38px !important;
+  margin:0 auto 5px !important;
+  border-radius:10px !important;
+  font-size:24px !important;
+  line-height:1 !important;
+}
+
+.category-name{
+  font-size:14px !important;
+  line-height:1.15 !important;
+  color:#333 !important;
+  white-space:nowrap !important;
+}
+
+.category-item.selected .category-icon{
+  background:#fff4cc !important;
+  outline:2px solid var(--yellow) !important;
+}
+
+.category-item.add-cat .category-icon{
+  width:36px !important;
+  height:36px !important;
+  background:#eee !important;
+  font-size:30px !important;
+}
+
+/* 下方資訊列縮小，備註從右半部開始 */
+.entry-summary{
+  min-height:88px !important;
+  grid-template-columns:42px 178px minmax(0,1fr) !important;
+  gap:6px !important;
+  padding:8px 12px 7px !important;
+}
+
+.selected-mini{
+  font-size:26px !important;
+  line-height:1 !important;
+}
+
+.currency-pill{
+  font-size:15px !important;
+  border-radius:6px !important;
+  padding:3px 6px !important;
+}
+
+.entry-money{
+  font-size:20px !important;
+}
+
+.note-input{
+  height:42px !important;
+  padding:8px 9px !important;
+  font-size:15px !important;
+  color:#333 !important;
+}
+
+.selected-tag{
+  font-size:13px !important;
+  padding:5px 12px !important;
+}
+
+/* 黃色計算機區縮成原版比例 */
+.keypad{
+  padding:7px 13px max(10px,env(safe-area-inset-bottom)) !important;
+}
+
+.date-bar{
+  height:37px !important;
+  border-width:2px !important;
+  border-radius:20px !important;
+  grid-template-columns:38px 1fr 38px !important;
+  margin-bottom:9px !important;
+}
+
+.date-nav{
+  color:#111 !important;
+  font-size:21px !important;
+  padding:0 !important;
+}
+
+.date-main{
+  color:#111 !important;
+  font-size:16px !important;
+  padding:0 !important;
+}
+
+/* 五欄固定較小，避免整排被撐大 */
+.calc-grid{
+  grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+  gap:6px !important;
+}
+
+.calc-btn{
+  color:#111 !important;
+  font-size:21px !important;
+  font-weight:700 !important;
+  border-width:2px !important;
+}
+
+.calc-btn.blue{
+  color:#fff !important;
+}
+
+.calc-btn.back{
+  font-size:25px !important;
+}
+
+.calc-btn.red{
+  font-size:20px !important;
+  border-radius:999px !important;
+}
+
+/* 390~414px iPhone：維持相同比例 */
+@media(max-width:414px){
+  .entry-tabs{
+    width:170px !important;
+    max-width:170px !important;
+  }
+
+  .category-area{
+    padding-top:29px !important;
+  }
+
+  .category-grid{
+    row-gap:21px !important;
+  }
+
+  .entry-summary{
+    grid-template-columns:40px 176px minmax(0,1fr) !important;
+  }
+
+  .calc-grid{
+    gap:6px !important;
+  }
+}
+
+/* iPhone 375 / SE 再微縮，不改成三欄 */
+@media(max-width:390px){
+  .entry-tabs{
+    width:164px !important;
+    max-width:164px !important;
+    height:33px !important;
+  }
+
+  .category-icon{
+    width:36px !important;
+    height:36px !important;
+    font-size:23px !important;
+  }
+
+  .category-name{
+    font-size:13px !important;
+  }
+
+  .entry-summary{
+    grid-template-columns:38px 160px minmax(0,1fr) !important;
+    padding-left:10px !important;
+    padding-right:10px !important;
+  }
+
+  .currency-pill{
+    font-size:14px !important;
+  }
+
+  .entry-money{
+    font-size:19px !important;
+  }
+
+  .date-main{
+    font-size:15px !important;
+  }
+
+  .calc-btn{
+    font-size:20px !important;
+  }
+}
+
+/* 窄螢幕仍保持四欄分類，不讓版面突然跳掉 */
+@media(max-width:340px){
+  .category-grid{
+    grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+    column-gap:3px !important;
+  }
+
+  .category-icon{
+    width:32px !important;
+    height:32px !important;
+    font-size:20px !important;
+  }
+
+  .category-name{
+    font-size:11px !important;
+  }
+
+  .entry-summary{
+    grid-template-columns:34px 138px minmax(0,1fr) !important;
+  }
+}
+
 </style>
 </head>
 
