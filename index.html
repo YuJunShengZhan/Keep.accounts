@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f6c84c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="簡單記帳">
+
+  <title>我的簡單記帳</title>
+
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icon-180.png">
+
+  <style>
+    :root{
+      --bg:#f8f6ef;--card:#fffdf8;--text:#202020;--muted:#777;
+      --yellow:#f6c84c;--blue:#58b9df;--red:#ff6f67;--green:#48ad79;
+      --line:#202020;--shadow:0 10px 28px rgba(0,0,0,.08)
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif}
+    button,input,select,textarea{font:inherit} button{cursor:pointer}
+    .hidden{display:none!important}
+
+    #authPage{min-height:100vh;display:grid;place-items:center;padding:24px;
+      background:radial-gradient(circle at 10% 10%,rgba(246,200,76,.35),transparent 27%),
+      radial-gradient(circle at 90% 90%,rgba(88,185,223,.28),transparent 27%),var(--bg)}
+    .auth-card{width:min(100%,420px);background:var(--card);border:2px solid var(--line);
+      border-radius:26px;padding:26px;box-shadow:var(--shadow)}
+    .brand{text-align:center;margin-bottom:22px}
+    .brand img{width:92px;height:92px;border-radius:24px;border:2px solid var(--line);box-shadow:var(--shadow)}
+    .brand h1{margin:12px 0 4px;font-size:28px}.brand p{margin:0;color:var(--muted);font-size:14px}
+    .tabs,.seg{display:grid;grid-template-columns:1fr 1fr;border:2px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:16px}
+    .tabs button,.seg button{border:0;background:#fff;padding:11px;font-weight:900}
+    .tabs button.active,.seg button.active{background:var(--yellow)}
+    .seg button:last-child.active{background:var(--blue)}
+    .field,.form-row{margin-bottom:13px}
+    .field label,.form-row label{display:block;font-size:12px;font-weight:900;margin-bottom:6px;color:#555}
+    .field input,.form-row input,.form-row select,.form-row textarea{
+      width:100%;border:2px solid var(--line);background:#fff;border-radius:12px;padding:12px;outline:none}
+    .primary{width:100%;border:2px solid var(--line);background:var(--red);color:#fff;border-radius:14px;padding:13px;font-weight:900}
+    .auth-msg{min-height:22px;margin-top:12px;text-align:center;font-size:13px;color:#b33}
+    .setup{margin-top:14px;padding:11px 12px;background:#fff3c9;border:1.5px solid #d5ac30;border-radius:12px;font-size:12px;line-height:1.6}
+
+    .app{width:min(100%,520px);min-height:100vh;margin:auto;padding-bottom:110px}
+    .topbar{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;
+      padding:15px 16px 9px;background:rgba(248,246,239,.94);backdrop-filter:blur(12px)}
+    .topbar select{border:0;background:transparent;font-size:20px;font-weight:900;outline:none}
+    .icon-btn{border:0;background:transparent;font-size:22px;padding:7px}
+
+    .userbar,.period-card{margin:0 16px 10px;padding:10px 12px;border:2px solid var(--line);background:#fff;border-radius:14px;
+      display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .user-email{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:260px}
+    .small-btn{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:7px 10px;font-weight:800}
+    .period-card{background:#fffaf0}.period-label{font-size:12px;color:var(--muted);font-weight:800}.period-value{font-weight:900;margin-top:2px}
+
+    .summary{margin:0 16px 14px;padding:14px 14px 18px;border:2px solid var(--line);border-radius:20px;background:var(--card);box-shadow:var(--shadow)}
+    .summary-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .summary-head h2{font-size:16px;margin:0}.chip{font-size:12px;background:#222;color:#fff;border-radius:999px;padding:5px 9px;font-weight:800}
+    .summary-grid{display:grid;grid-template-columns:1fr 165px 1fr;align-items:center;gap:6px}
+    .metric{text-align:center}.metric small{display:block;font-weight:900;margin-bottom:4px}.metric strong{font-size:18px}
+    .expense small{color:#b68d00}.income small{color:#2c98c2}
+    .donut-wrap{position:relative;width:155px;height:155px;margin:auto}.donut{position:absolute;inset:0;border-radius:50%;border:2px solid var(--line)}
+    .donut:after{content:"";position:absolute;inset:30px;border-radius:50%;background:var(--card);border:2px solid var(--line)}
+    .donut-center{position:absolute;inset:0;z-index:2;display:grid;place-content:center;text-align:center;font-weight:900}
+    .donut-center span{font-size:12px}.donut-center strong{font-size:19px;margin-top:3px}
+
+    .quick-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 16px 14px}
+    .quick-card{border:2px solid var(--line);background:#fff;border-radius:14px;padding:11px 8px;text-align:center;font-weight:900}
+    .quick-card span{display:block;font-size:11px;color:var(--muted);margin-top:3px}
+    .section-title{display:flex;align-items:center;justify-content:space-between;padding:0 18px 8px}.section-title h3{margin:0}
+    .section-title button{border:0;background:transparent;font-weight:800;color:#555}
+    .transactions{padding:0 16px}
+    .day-group{border:2px solid var(--line);border-radius:16px;background:var(--card);overflow:hidden;margin-bottom:12px}
+    .day-head{display:flex;justify-content:space-between;padding:10px 12px;background:#fffaf0;border-bottom:1.5px solid var(--line);font-weight:900;font-size:13px}
+    .tx{display:grid;grid-template-columns:42px 1fr auto auto;gap:10px;align-items:center;padding:12px;border-bottom:1px solid #ddd}.tx:last-child{border-bottom:0}
+    .emoji{width:38px;height:38px;border-radius:12px;background:#f1eee4;display:grid;place-items:center;font-size:21px}
+    .tx-name{font-weight:900}.tx-note{font-size:11px;color:var(--muted);margin-top:2px}.tx-amount{font-weight:900}.tx-amount.inc{color:#2494bd}
+    .delete-btn{border:0;background:transparent;color:#aaa;font-size:18px}
+    .empty{border:2px dashed #aaa;border-radius:16px;padding:28px 18px;text-align:center;color:#777;background:#fff}
+    .fab{position:fixed;left:50%;transform:translateX(-50%);bottom:26px;width:64px;height:64px;border-radius:50%;
+      border:2px solid var(--line);background:var(--red);color:#fff;font-size:38px;box-shadow:0 8px 18px rgba(255,111,103,.35);z-index:30}
+
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:flex-end;justify-content:center;z-index:50}.modal.show{display:flex}
+    .sheet{width:min(100%,520px);background:var(--bg);border-radius:24px 24px 0 0;padding:18px 18px calc(22px + env(safe-area-inset-bottom));max-height:90vh;overflow:auto}
+    .sheet-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}.sheet-head h3{margin:0}.close{border:0;background:#eae5da;border-radius:50%;width:34px;height:34px;font-size:20px}
+    .amount-input{font-size:30px!important;font-weight:900;text-align:right}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .danger{width:100%;border:2px solid #b33;background:#fff;color:#b33;border-radius:14px;padding:11px;font-weight:900;margin-top:10px}
+    .hint{font-size:12px;color:#777;line-height:1.6}
+
+    @media(max-width:420px){
+      .summary-grid{grid-template-columns:1fr 132px 1fr}.donut-wrap{width:126px;height:126px}.donut:after{inset:25px}.metric strong{font-size:15px}
+    }
+  </style>
+</head>
+<body>
+
+<section id="authPage">
+  <div class="auth-card">
+    <div class="brand">
+      <img src="./icon-192.png" alt="簡單記帳">
+      <h1>簡單記帳</h1>
+      <p>每個帳號，都有自己的收支資料</p>
+    </div>
+
+    <div class="tabs">
+      <button id="loginTab" class="active" type="button">登入</button>
+      <button id="registerTab" type="button">註冊</button>
+    </div>
+
+    <form id="authForm">
+      <div class="field">
+        <label>電子郵件</label>
+        <input id="email" type="email" autocomplete="email" placeholder="name@example.com" required>
+      </div>
+      <div class="field">
+        <label>密碼</label>
+        <input id="password" type="password" autocomplete="current-password" minlength="6" placeholder="至少 6 個字元" required>
+      </div>
+      <button class="primary" id="authSubmit" type="submit">登入</button>
+    </form>
+
+    <div class="auth-msg" id="authMsg"></div>
+
+    <div class="setup hidden" id="setupWarning">
+      Supabase 尚未設定。請先打開 <b>supabase-config.js</b>，
+      填入你的 Project URL 與 Publishable key。
+    </div>
+  </div>
+</section>
+
+<div id="mainApp" class="app hidden">
+  <header class="topbar">
+    <button class="icon-btn" id="settingsBtn" aria-label="設定">☰</button>
+    <select id="monthSelect" aria-label="選擇月份"></select>
+    <button class="icon-btn" id="thisMonthBtn" aria-label="回到本月">▣</button>
+  </header>
+
+  <section class="userbar">
+    <div>
+      <div style="font-weight:900">👤 已登入</div>
+      <div class="user-email" id="userEmail"></div>
+    </div>
+    <button class="small-btn" id="logoutBtn">登出</button>
+  </section>
+
+  <section class="period-card">
+    <div>
+      <div class="period-label">收入統計期間</div>
+      <div class="period-value" id="periodText">依目前月份統計</div>
+    </div>
+    <button class="small-btn" id="periodBtn">設定</button>
+  </section>
+
+  <section class="summary">
+    <div class="summary-head">
+      <h2>收支總覽</h2>
+      <span class="chip" id="periodChip">本月</span>
+    </div>
+    <div class="summary-grid">
+      <div class="metric expense"><small>支出</small><strong id="expenseTotal">$0</strong></div>
+      <div class="donut-wrap">
+        <div class="donut" id="donut"></div>
+        <div class="donut-center"><span>結餘</span><strong id="balanceTotal">$0</strong></div>
+      </div>
+      <div class="metric income"><small>收入</small><strong id="incomeTotal">$0</strong></div>
+    </div>
+  </section>
+
+  <section class="quick-row">
+    <div class="quick-card">🍚 餐飲<span id="foodStat">$0</span></div>
+    <div class="quick-card">🚗 交通<span id="trafficStat">$0</span></div>
+    <div class="quick-card">🛍️ 購物<span id="shopStat">$0</span></div>
+  </section>
+
+  <div class="section-title">
+    <h3>明細</h3>
+    <button id="resetMonthBtn">回到本月</button>
+  </div>
+
+  <main class="transactions" id="transactions"></main>
+  <button class="fab" id="addBtn" aria-label="新增記帳">＋</button>
+</div>
+
+<div class="modal" id="entryModal">
+  <div class="sheet">
+    <div class="sheet-head"><h3>新增一筆</h3><button class="close" data-close="entryModal">×</button></div>
+    <div class="seg"><button id="expenseTab" class="active" type="button">支出</button><button id="incomeTab" type="button">收入</button></div>
+    <form id="entryForm">
+      <input type="hidden" id="entryType" value="expense">
+      <div class="form-row"><label>金額</label><input class="amount-input" id="amount" type="number" min="1" step="1" placeholder="$ 0" required></div>
+      <div class="grid2">
+        <div class="form-row"><label>日期</label><input id="date" type="date" required></div>
+        <div class="form-row"><label>分類</label><select id="category"></select></div>
+      </div>
+      <div class="form-row"><label>項目名稱</label><input id="title" maxlength="30" placeholder="例如：午餐、薪水" required></div>
+      <div class="form-row"><label>備註</label><textarea id="note" rows="2" maxlength="80" placeholder="可不填"></textarea></div>
+      <button class="primary" type="submit">完成記帳</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal" id="settingsModal">
+  <div class="sheet">
+    <div class="sheet-head"><h3>設定</h3><button class="close" data-close="settingsModal">×</button></div>
+    <div class="form-row"><label>收入期間開始日</label><input id="periodStart" type="date"></div>
+    <div class="form-row"><label>收入期間結束日</label><input id="periodEnd" type="date"></div>
+    <p class="hint">設定後，首頁會依這個起訖日計算收入、支出與結餘。清除後則回到月份統計。</p>
+    <button class="primary" id="saveSettings" type="button" style="background:#222">儲存期間</button>
+    <button class="danger" id="clearPeriod" type="button">清除收入期間</button>
+  </div>
+</div>
+
+<script src="./supabase-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const cfg = window.SUPABASE_CONFIG || {};
+  const configured =
+    cfg.url &&
+    cfg.key &&
+    !String(cfg.url).includes("請填入") &&
+    !String(cfg.key).includes("請填入");
+
+  const money = n => "$" + Math.round(Number(n || 0)).toLocaleString("zh-TW");
+  const pad = n => String(n).padStart(2,"0");
+  const toISO = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+  const parseDate = s => {
+    if(!s) return null;
+    const [y,m,d] = s.split("-").map(Number);
+    return new Date(y,m-1,d,12);
+  };
+
+  let client = null;
+  let user = null;
+  let entries = [];
+  let authMode = "login";
+  const now = new Date();
+  let settings = {
+    periodStart:"",
+    periodEnd:"",
+    selectedMonth:`${now.getFullYear()}-${pad(now.getMonth()+1)}`
+  };
+
+  const categories = {
+    expense:[["餐飲","🍚"],["早餐","🥪"],["午餐","🍱"],["晚餐","🍜"],["交通","🚗"],["購物","🛍️"],["娛樂","🎮"],["居家","🏠"],["帳單","🧾"],["醫療","💊"],["禮物","🎁"],["其他","📌"]],
+    income:[["薪水","💰"],["獎金","🧧"],["兼職","💼"],["投資","📈"],["退款","↩️"],["其他收入","💵"]]
+  };
+
+  if(!configured){
+    $("#setupWarning").classList.remove("hidden");
+    $("#authSubmit").disabled = true;
+    $("#authSubmit").style.opacity = ".5";
+  } else {
+    client = window.supabase.createClient(cfg.url, cfg.key, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
+    });
+
+    initAuth();
+  }
+
+  async function initAuth(){
+    const { data } = await client.auth.getSession();
+    await applySession(data.session);
+
+    client.auth.onAuthStateChange(async (_event, session) => {
+      await applySession(session);
+    });
+  }
+
+  async function applySession(session){
+    user = session?.user || null;
+
+    if(!user){
+      entries = [];
+      $("#mainApp").classList.add("hidden");
+      $("#authPage").classList.remove("hidden");
+      return;
+    }
+
+    $("#authPage").classList.add("hidden");
+    $("#mainApp").classList.remove("hidden");
+    $("#userEmail").textContent = user.email || user.id;
+
+    await Promise.all([loadSettings(), loadEntries()]);
+    buildMonthOptions();
+    render();
+  }
+
+  function setAuthMode(mode){
+    authMode = mode;
+    $("#loginTab").classList.toggle("active",mode==="login");
+    $("#registerTab").classList.toggle("active",mode==="register");
+    $("#authSubmit").textContent = mode==="login" ? "登入" : "建立帳號";
+    $("#password").autocomplete = mode==="login" ? "current-password" : "new-password";
+    $("#authMsg").textContent = "";
+  }
+
+  $("#loginTab").onclick = () => setAuthMode("login");
+  $("#registerTab").onclick = () => setAuthMode("register");
+
+  $("#authForm").addEventListener("submit", async e => {
+    e.preventDefault();
+    if(!client) return;
+
+    const email = $("#email").value.trim();
+    const password = $("#password").value;
+    $("#authMsg").textContent = "處理中…";
+
+    try{
+      if(authMode === "register"){
+        const { data, error } = await client.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: window.location.href.split("#")[0]
+          }
+        });
+        if(error) throw error;
+
+        if(!data.session){
+          $("#authMsg").style.color = "#276749";
+          $("#authMsg").textContent = "註冊成功，請先到信箱完成 Email 驗證，再回來登入。";
+        }else{
+          $("#authMsg").textContent = "";
+        }
+      }else{
+        const { error } = await client.auth.signInWithPassword({ email, password });
+        if(error) throw error;
+        $("#authMsg").textContent = "";
+      }
+    }catch(err){
+      $("#authMsg").style.color = "#b33";
+      const message = String(err.message || "");
+      if(message.toLowerCase().includes("invalid login credentials")){
+        $("#authMsg").textContent = "Email 或密碼不正確";
+      }else if(message.toLowerCase().includes("email not confirmed")){
+        $("#authMsg").textContent = "請先完成 Email 驗證";
+      }else if(message.toLowerCase().includes("password")){
+        $("#authMsg").textContent = "密碼至少需要 6 個字元";
+      }else{
+        $("#authMsg").textContent = "登入/註冊失敗：" + message;
+      }
+    }
+  });
+
+  $("#logoutBtn").onclick = async () => {
+    if(client) await client.auth.signOut();
+  };
+
+  async function loadEntries(){
+    const { data, error } = await client
+      .from("entries")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("entry_date", { ascending:false })
+      .order("created_at", { ascending:false });
+
+    if(error){
+      console.error(error);
+      alert("讀取記帳資料失敗，請確認已執行 supabase-setup.sql。");
+      entries = [];
+      return;
+    }
+
+    entries = (data || []).map(row => ({
+      id: row.id,
+      type: row.type,
+      amount: Number(row.amount),
+      date: row.entry_date,
+      category: row.category,
+      title: row.title,
+      note: row.note || ""
+    }));
+  }
+
+  async function loadSettings(){
+    const { data, error } = await client
+      .from("user_settings")
+      .select("*")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if(error){
+      console.error(error);
+      return;
+    }
+
+    if(data){
+      settings.periodStart = data.period_start || "";
+      settings.periodEnd = data.period_end || "";
+      settings.selectedMonth = data.selected_month || settings.selectedMonth;
+    }
+  }
+
+  async function saveSettingsCloud(){
+    const { error } = await client
+      .from("user_settings")
+      .upsert({
+        user_id: user.id,
+        period_start: settings.periodStart || null,
+        period_end: settings.periodEnd || null,
+        selected_month: settings.selectedMonth,
+        updated_at: new Date().toISOString()
+      }, { onConflict:"user_id" });
+
+    if(error){
+      console.error(error);
+      alert("儲存設定失敗：" + error.message);
+      throw error;
+    }
+  }
+
+  function buildMonthOptions(){
+    const sel = $("#monthSelect");
+    sel.innerHTML = "";
+    const base = new Date();
+
+    for(let i=-18;i<=12;i++){
+      const d = new Date(base.getFullYear(),base.getMonth()+i,1);
+      const val = `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
+      const opt = document.createElement("option");
+      opt.value = val;
+      opt.textContent = `${d.getFullYear()} 年 ${d.getMonth()+1} 月`;
+      if(val===settings.selectedMonth) opt.selected = true;
+      sel.appendChild(opt);
+    }
+  }
+
+  function getRange(){
+    if(settings.periodStart && settings.periodEnd){
+      const s = parseDate(settings.periodStart);
+      const e = parseDate(settings.periodEnd);
+      if(s && e && s<=e) return [s,e,"自訂期間"];
+    }
+
+    const [y,m] = settings.selectedMonth.split("-").map(Number);
+    return [new Date(y,m-1,1),new Date(y,m,0,23,59,59),"本月"];
+  }
+
+  function render(){
+    const [start,end,label] = getRange();
+    const list = entries
+      .filter(e => {
+        const d = parseDate(e.date);
+        return d && d>=start && d<=end;
+      })
+      .sort((a,b) => b.date.localeCompare(a.date));
+
+    const income = list.filter(e=>e.type==="income").reduce((s,e)=>s+Number(e.amount),0);
+    const expense = list.filter(e=>e.type==="expense").reduce((s,e)=>s+Number(e.amount),0);
+    const balance = income-expense;
+
+    $("#incomeTotal").textContent = money(income);
+    $("#expenseTotal").textContent = money(expense);
+    $("#balanceTotal").textContent = money(balance);
+    $("#periodChip").textContent = label;
+
+    if(settings.periodStart && settings.periodEnd){
+      const s=parseDate(settings.periodStart), e=parseDate(settings.periodEnd);
+      $("#periodText").textContent = `${s.getMonth()+1}/${s.getDate()} ～ ${e.getMonth()+1}/${e.getDate()}`;
+    }else{
+      $("#periodText").textContent = "依目前月份統計";
+    }
+
+    const total = income+expense;
+    const deg = total ? income/total*360 : 180;
+    $("#donut").style.background = total
+      ? `conic-gradient(var(--blue) 0deg ${deg}deg,var(--yellow) ${deg}deg 360deg)`
+      : "conic-gradient(#ddd 0deg 360deg)";
+
+    const sumCat = names => list
+      .filter(e=>e.type==="expense"&&names.includes(e.category))
+      .reduce((s,e)=>s+Number(e.amount),0);
+
+    $("#foodStat").textContent = money(sumCat(["餐飲","早餐","午餐","晚餐"]));
+    $("#trafficStat").textContent = money(sumCat(["交通"]));
+    $("#shopStat").textContent = money(sumCat(["購物"]));
+
+    const groups = {};
+    list.forEach(e => (groups[e.date] ||= []).push(e));
+    const box = $("#transactions");
+
+    if(!list.length){
+      box.innerHTML = `<div class="empty">這個期間還沒有資料<br>按下「＋」新增第一筆記帳。</div>`;
+      return;
+    }
+
+    box.innerHTML = Object.keys(groups).sort().reverse().map(date => {
+      const day = groups[date];
+      const d = parseDate(date);
+      const wd = ["日","一","二","三","四","五","六"][d.getDay()];
+      const net = day.reduce((s,e)=>s+(e.type==="income"?Number(e.amount):-Number(e.amount)),0);
+
+      return `<section class="day-group">
+        <div class="day-head">
+          <span>${date.replaceAll("-","/")} 星期${wd}</span>
+          <span>${net>=0?"+":""}${money(net)}</span>
+        </div>
+        ${day.map(e => `<div class="tx">
+          <div class="emoji">${iconFor(e.category,e.type)}</div>
+          <div>
+            <div class="tx-name">${esc(e.title)}</div>
+            <div class="tx-note">${esc(e.category)}${e.note?" · "+esc(e.note):""}</div>
+          </div>
+          <div class="tx-amount ${e.type==="income"?"inc":""}">
+            ${e.type==="income"?"+":"-"}${money(e.amount)}
+          </div>
+          <button class="delete-btn" data-delete="${e.id}" aria-label="刪除">×</button>
+        </div>`).join("")}
+      </section>`;
+    }).join("");
+
+    box.querySelectorAll("[data-delete]").forEach(btn => {
+      btn.onclick = async () => {
+        if(!confirm("要刪除這筆記帳嗎？")) return;
+
+        const { error } = await client
+          .from("entries")
+          .delete()
+          .eq("id", btn.dataset.delete)
+          .eq("user_id", user.id);
+
+        if(error){
+          alert("刪除失敗：" + error.message);
+          return;
+        }
+
+        await loadEntries();
+        render();
+      };
+    });
+  }
+
+  function iconFor(category,type){
+    return (categories[type].find(x=>x[0]===category)||["","📌"])[1];
+  }
+
+  function esc(v=""){
+    return String(v).replace(/[&<>"']/g,c=>({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+    }[c]));
+  }
+
+  function openModal(id){ $("#"+id).classList.add("show"); }
+  function closeModal(id){ $("#"+id).classList.remove("show"); }
+
+  document.querySelectorAll("[data-close]").forEach(b => {
+    b.onclick = () => closeModal(b.dataset.close);
+  });
+
+  document.querySelectorAll(".modal").forEach(m => {
+    m.onclick = e => { if(e.target===m) closeModal(m.id); };
+  });
+
+  function setEntryType(type){
+    $("#entryType").value=type;
+    $("#expenseTab").classList.toggle("active",type==="expense");
+    $("#incomeTab").classList.toggle("active",type==="income");
+    $("#category").innerHTML = categories[type]
+      .map(([n,i])=>`<option value="${n}">${i} ${n}</option>`)
+      .join("");
+  }
+
+  $("#expenseTab").onclick=()=>setEntryType("expense");
+  $("#incomeTab").onclick=()=>setEntryType("income");
+
+  $("#addBtn").onclick=()=>{
+    $("#entryForm").reset();
+    setEntryType("expense");
+    $("#date").value=toISO(new Date());
+    openModal("entryModal");
+  };
+
+  $("#entryForm").addEventListener("submit",async e=>{
+    e.preventDefault();
+
+    const amount=Number($("#amount").value);
+    if(amount<=0) return alert("請輸入正確金額");
+
+    const { error } = await client
+      .from("entries")
+      .insert({
+        user_id:user.id,
+        type:$("#entryType").value,
+        amount,
+        entry_date:$("#date").value,
+        category:$("#category").value,
+        title:$("#title").value.trim(),
+        note:$("#note").value.trim()
+      });
+
+    if(error){
+      alert("新增失敗：" + error.message);
+      return;
+    }
+
+    closeModal("entryModal");
+    await loadEntries();
+    render();
+  });
+
+  function openSettings(){
+    $("#periodStart").value=settings.periodStart||"";
+    $("#periodEnd").value=settings.periodEnd||"";
+    openModal("settingsModal");
+  }
+
+  $("#settingsBtn").onclick=openSettings;
+  $("#periodBtn").onclick=openSettings;
+
+  $("#saveSettings").onclick=async()=>{
+    const s=$("#periodStart").value;
+    const e=$("#periodEnd").value;
+
+    if((s&&!e)||(!s&&e)) return alert("開始日與結束日都要設定");
+    if(s&&e&&parseDate(s)>parseDate(e)) return alert("開始日不能晚於結束日");
+
+    settings.periodStart=s;
+    settings.periodEnd=e;
+    await saveSettingsCloud();
+    closeModal("settingsModal");
+    render();
+  };
+
+  $("#clearPeriod").onclick=async()=>{
+    settings.periodStart="";
+    settings.periodEnd="";
+    await saveSettingsCloud();
+    closeModal("settingsModal");
+    render();
+  };
+
+  $("#monthSelect").onchange=async e=>{
+    settings.selectedMonth=e.target.value;
+    settings.periodStart="";
+    settings.periodEnd="";
+    await saveSettingsCloud();
+    render();
+  };
+
+  async function goThisMonth(){
+    const d=new Date();
+    settings.selectedMonth=`${d.getFullYear()}-${pad(d.getMonth()+1)}`;
+    settings.periodStart="";
+    settings.periodEnd="";
+    await saveSettingsCloud();
+    buildMonthOptions();
+    render();
+  }
+
+  $("#thisMonthBtn").onclick=goThisMonth;
+  $("#resetMonthBtn").onclick=goThisMonth;
+
+  setEntryType("expense");
+
+  if("serviceWorker" in navigator){
+    window.addEventListener("load",()=>{
+      navigator.serviceWorker.register("./sw.js").catch(console.error);
+    });
+  }
+})();
+</script>
+</body>
+</html>
