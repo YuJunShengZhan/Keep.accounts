@@ -55,7 +55,7 @@ button{cursor:pointer}
 /* HOME */
 .home-header{
   height:78px;
-  display:grid;grid-template-columns:56px 1fr 90px;
+  display:grid;grid-template-columns:56px 1fr 56px;
   align-items:end;
   padding:0 18px 16px;
   border-bottom:1px solid #ddd;
@@ -226,7 +226,7 @@ button{cursor:pointer}
 
 /* responsive */
 @media(max-width:390px){
-  .home-header{grid-template-columns:46px 1fr 78px;padding-left:12px;padding-right:12px}
+  .home-header{grid-template-columns:46px 1fr 46px;padding-left:12px;padding-right:12px}
   #monthSelect{font-size:20px}
   .stats-row{padding-left:20px;padding-right:20px;gap:18px}
   .stat-number{font-size:25px}
@@ -249,6 +249,133 @@ button{cursor:pointer}
   body{background:#f2f2f2}
   #mainApp{box-shadow:0 0 30px rgba(0,0,0,.08)}
 }
+
+/* ===== iPhone Safari button/layout fixes ===== */
+button,
+input,
+select {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.header-spacer{
+  width:56px;
+  height:1px;
+  justify-self:end;
+}
+
+/* 首頁 + 一定保持正圓，不受 Safari 預設按鈕樣式影響 */
+.fab{
+  width:72px !important;
+  height:72px !important;
+  min-width:72px !important;
+  min-height:72px !important;
+  max-width:72px !important;
+  max-height:72px !important;
+  aspect-ratio:1 / 1 !important;
+  padding:0 !important;
+  margin:0 !important;
+  border-radius:50% !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  line-height:1 !important;
+  font-size:48px !important;
+  font-weight:300 !important;
+  box-sizing:border-box !important;
+}
+
+/* 計算機：每一顆數字 / 運算鍵固定正圓 */
+.calc-grid{
+  grid-template-columns:repeat(5,minmax(0,1fr)) !important;
+  grid-template-rows:none !important;
+  grid-auto-rows:auto !important;
+  gap:8px !important;
+  align-items:stretch;
+}
+
+.calc-btn{
+  width:100% !important;
+  height:auto !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  aspect-ratio:1 / 1 !important;
+  padding:0 !important;
+  margin:0 !important;
+  border-radius:50% !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  line-height:1 !important;
+  box-sizing:border-box !important;
+}
+
+/* OK 鍵跨兩列，所以是直向膠囊，不套正圓比例 */
+.calc-btn.red{
+  aspect-ratio:auto !important;
+  height:100% !important;
+  border-radius:999px !important;
+  grid-row:3 / 5 !important;
+  grid-column:5 !important;
+}
+
+/* 上方返回/更多也移除 Safari 預設按鈕留白 */
+.back-btn,
+.more-btn,
+.menu-btn,
+.date-nav,
+.date-main{
+  min-width:0 !important;
+  min-height:0 !important;
+}
+
+/* 避免 iPhone 瀏覽器底部工具列附近被擠壓 */
+.entry-bottom{
+  padding-bottom:env(safe-area-inset-bottom);
+}
+
+.keypad{
+  padding-bottom:max(12px,env(safe-area-inset-bottom)) !important;
+}
+
+/* 小型 iPhone 尺寸 */
+@media(max-width:390px){
+  .header-spacer{width:46px}
+
+  .fab{
+    width:68px !important;
+    height:68px !important;
+    min-width:68px !important;
+    min-height:68px !important;
+    max-width:68px !important;
+    max-height:68px !important;
+    font-size:44px !important;
+  }
+
+  .calc-grid{
+    gap:7px !important;
+  }
+
+  .calc-btn{
+    font-size:22px !important;
+  }
+}
+
+/* iPhone SE 等窄螢幕 */
+@media(max-width:350px){
+  .calc-grid{
+    gap:5px !important;
+  }
+  .calc-btn{
+    font-size:20px !important;
+    border-width:2.5px !important;
+  }
+}
+
 </style>
 </head>
 
@@ -280,10 +407,7 @@ button{cursor:pointer}
     <header class="home-header">
       <button class="menu-btn" id="settingsBtn" aria-label="設定">☰</button>
       <div class="month-wrap"><select id="monthSelect"></select></div>
-      <div class="header-icons">
-        <button class="head-icon" type="button" aria-label="提醒">♢</button>
-        <button class="head-icon" id="thisMonthBtn" type="button" aria-label="本月">▣</button>
-      </div>
+      <div class="header-spacer" aria-hidden="true"></div>
     </header>
 
     <section class="stats-row">
@@ -824,15 +948,6 @@ button{cursor:pointer}
   $("#monthSelect").onchange=async e=>{
     settings.selectedMonth=e.target.value;
     settings.periodStart="";settings.periodEnd="";
-    try{await saveSettingsCloud()}catch(err){console.error(err)}
-    renderHome();
-  };
-
-  $("#thisMonthBtn").onclick=async()=>{
-    const d=new Date();
-    settings.selectedMonth=`${d.getFullYear()}-${pad(d.getMonth()+1)}`;
-    settings.periodStart="";settings.periodEnd="";
-    buildMonthOptions();
     try{await saveSettingsCloud()}catch(err){console.error(err)}
     renderHome();
   };
