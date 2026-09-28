@@ -492,6 +492,117 @@
       }
     }
 
+  
+    /* ===== Cleaner account area ===== */
+    .account-card{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      border:2px solid var(--line);background:#fff;border-radius:16px;
+      padding:12px 14px;margin-bottom:16px
+    }
+    .account-card>div{min-width:0}
+    .account-label{font-size:11px;font-weight:900;color:var(--muted);margin-bottom:3px}
+    .account-email{font-size:13px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:300px}
+    .account-logout{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:8px 12px;font-weight:900;white-space:nowrap}
+
+    /* ===== App-like quick entry ===== */
+    .entry-sheet{
+      background:#fffdf8;
+      padding:14px 16px max(20px,env(safe-area-inset-bottom));
+      border-radius:28px 28px 0 0;
+      max-height:94vh
+    }
+    .entry-top{
+      display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:8px;
+      margin-bottom:4px
+    }
+    .entry-close{justify-self:start}
+    .entry-spacer{width:44px}
+    .entry-type-tabs{
+      display:grid;grid-template-columns:1fr 1fr;background:#efede5;
+      border-radius:14px;padding:4px;gap:4px
+    }
+    .entry-type-tabs button{
+      border:0;background:transparent;border-radius:10px;padding:9px 12px;
+      font-weight:900;color:#777
+    }
+    .entry-type-tabs button.active{
+      background:#fff;color:#222;box-shadow:0 2px 8px rgba(0,0,0,.08)
+    }
+    #expenseTab.active{color:#b88400}
+    #incomeTab.active{color:#1685ad}
+
+    .amount-hero{
+      display:flex;align-items:center;justify-content:center;gap:6px;
+      padding:18px 8px 10px
+    }
+    .amount-hero .currency{font-size:30px;font-weight:900;color:#444}
+    .amount-hero input{
+      width:min(72vw,360px);border:0;background:transparent;outline:none;
+      font-size:50px;font-weight:900;text-align:center;color:#222;padding:0
+    }
+    .amount-hero input::placeholder{color:#c8c3b8}
+
+    .entry-date-row{
+      display:flex;justify-content:center;margin-bottom:16px
+    }
+    #date{
+      position:absolute;opacity:0;pointer-events:none;width:1px;height:1px
+    }
+    .date-pill{
+      border:1.5px solid #d4d0c7;background:#f6f3ea;border-radius:999px;
+      padding:8px 14px;font-weight:800;color:#555;display:flex;gap:6px;align-items:center
+    }
+
+    .category-title{
+      font-size:13px;font-weight:900;color:#777;margin:4px 2px 10px
+    }
+    .category-grid{
+      display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px
+    }
+    .category-item{
+      border:0;background:transparent;text-align:center;padding:0
+    }
+    .category-bubble{
+      width:54px;height:54px;margin:0 auto 5px;border-radius:18px;
+      display:grid;place-items:center;background:#f1eee4;border:2px solid transparent;
+      font-size:25px;transition:.15s ease
+    }
+    .category-item span:last-child{
+      display:block;font-size:11px;font-weight:800;color:#555
+    }
+    .category-item.selected .category-bubble{
+      background:#fff4cf;border-color:#e0b528;transform:translateY(-1px)
+    }
+    .category-item.selected span:last-child{color:#222}
+
+    .entry-detail-card{
+      border:1.5px solid #ded9cf;border-radius:16px;background:#fff;overflow:hidden;margin-bottom:14px
+    }
+    .detail-line{
+      display:grid;grid-template-columns:28px 1fr;align-items:center;padding:0 12px
+    }
+    .detail-line + .detail-line{border-top:1px solid #ece8df}
+    .detail-icon{font-size:16px;text-align:center}
+    .detail-line input{
+      border:0!important;background:transparent!important;padding:13px 8px!important;outline:none!important
+    }
+    .entry-save{
+      width:100%;border:0;border-radius:16px;background:#f2c44c;color:#222;
+      padding:14px;font-size:17px;font-weight:900;box-shadow:0 5px 14px rgba(242,196,76,.28)
+    }
+    .entry-save:active{transform:translateY(1px)}
+
+    @media(max-width:390px){
+      .entry-sheet{padding-left:12px;padding-right:12px}
+      .amount-hero input{font-size:44px;width:68vw}
+      .category-grid{gap:8px}
+      .category-bubble{width:49px;height:49px;font-size:22px;border-radius:16px}
+    }
+
+    @media(max-width:340px){
+      .category-grid{grid-template-columns:repeat(3,1fr)}
+    }
+
   </style>
 </head>
 <body>
@@ -536,16 +647,7 @@
     <select id="monthSelect" aria-label="選擇月份"></select>
     <button class="icon-btn" id="thisMonthBtn" aria-label="回到本月">▣</button>
   </header>
-
-  <section class="userbar">
-    <div>
-      <div style="font-weight:900">👤 已登入</div>
-      <div class="user-email" id="userEmail"></div>
-    </div>
-    <button class="small-btn" id="logoutBtn">登出</button>
-  </section>
-
-  <section class="period-card">
+<section class="period-card">
     <div>
       <div class="period-label">收入統計期間</div>
       <div class="period-value" id="periodText">依目前月份統計</div>
@@ -584,19 +686,48 @@
 </div>
 
 <div class="modal" id="entryModal">
-  <div class="sheet">
-    <div class="sheet-head"><h3>新增一筆</h3><button class="close" data-close="entryModal">×</button></div>
-    <div class="seg"><button id="expenseTab" class="active" type="button">支出</button><button id="incomeTab" type="button">收入</button></div>
+  <div class="sheet entry-sheet">
+    <div class="entry-top">
+      <button class="close entry-close" data-close="entryModal">×</button>
+      <div class="entry-type-tabs">
+        <button id="expenseTab" class="active" type="button">支出</button>
+        <button id="incomeTab" type="button">收入</button>
+      </div>
+      <div class="entry-spacer"></div>
+    </div>
+
     <form id="entryForm">
       <input type="hidden" id="entryType" value="expense">
-      <div class="form-row"><label>金額</label><input class="amount-input" id="amount" type="number" min="1" step="1" placeholder="$ 0" required></div>
-      <div class="grid2">
-        <div class="form-row"><label>日期</label><input id="date" type="date" required></div>
-        <div class="form-row"><label>分類</label><select id="category"></select></div>
+
+      <div class="amount-hero">
+        <span class="currency">$</span>
+        <input id="amount" type="number" inputmode="decimal" min="1" step="1" placeholder="0" required>
       </div>
-      <div class="form-row"><label>項目名稱</label><input id="title" maxlength="30" placeholder="例如：午餐、薪水" required></div>
-      <div class="form-row"><label>備註</label><textarea id="note" rows="2" maxlength="80" placeholder="可不填"></textarea></div>
-      <button class="primary" type="submit">完成記帳</button>
+
+      <div class="entry-date-row">
+        <button type="button" class="date-pill" id="dateQuickBtn">
+          <span>📅</span>
+          <span id="dateLabel">今天</span>
+        </button>
+        <input id="date" type="date" required>
+      </div>
+
+      <div class="category-title">選擇分類</div>
+      <div id="categoryGrid" class="category-grid"></div>
+      <select id="category" class="hidden" aria-hidden="true"></select>
+
+      <div class="entry-detail-card">
+        <div class="detail-line">
+          <span class="detail-icon">✏️</span>
+          <input id="title" maxlength="30" placeholder="輸入項目，例如：午餐" required>
+        </div>
+        <div class="detail-line">
+          <span class="detail-icon">💬</span>
+          <input id="note" maxlength="80" placeholder="備註（可不填）">
+        </div>
+      </div>
+
+      <button class="entry-save" type="submit">記一筆</button>
     </form>
   </div>
 </div>
@@ -604,6 +735,13 @@
 <div class="modal" id="settingsModal">
   <div class="sheet">
     <div class="sheet-head"><h3>設定</h3><button class="close" data-close="settingsModal">×</button></div>
+    <div class="account-card">
+      <div>
+        <div class="account-label">目前帳號</div>
+        <div class="account-email" id="userEmail"></div>
+      </div>
+      <button class="account-logout" id="logoutBtn" type="button">登出</button>
+    </div>
     <div class="form-row"><label>收入期間開始日</label><input id="periodStart" type="date"></div>
     <div class="form-row"><label>收入期間結束日</label><input id="periodEnd" type="date"></div>
     <p class="hint">設定後，首頁會依這個起訖日計算收入、支出與結餘。清除後則回到月份統計。</p>
@@ -963,9 +1101,28 @@
     $("#entryType").value=type;
     $("#expenseTab").classList.toggle("active",type==="expense");
     $("#incomeTab").classList.toggle("active",type==="income");
+
     $("#category").innerHTML = categories[type]
       .map(([n,i])=>`<option value="${n}">${i} ${n}</option>`)
       .join("");
+
+    $("#categoryGrid").innerHTML = categories[type]
+      .map(([name,emoji],idx)=>`
+        <button type="button" class="category-item ${idx===0?"selected":""}" data-category="${esc(name)}">
+          <span class="category-bubble">${emoji}</span>
+          <span>${esc(name)}</span>
+        </button>
+      `).join("");
+
+    $("#category").value = categories[type][0][0];
+
+    $("#categoryGrid").querySelectorAll(".category-item").forEach(btn=>{
+      btn.onclick=()=>{
+        $("#categoryGrid").querySelectorAll(".category-item").forEach(x=>x.classList.remove("selected"));
+        btn.classList.add("selected");
+        $("#category").value=btn.dataset.category;
+      };
+    });
   }
 
   $("#expenseTab").onclick=()=>setEntryType("expense");
@@ -974,9 +1131,25 @@
   $("#addBtn").onclick=()=>{
     $("#entryForm").reset();
     setEntryType("expense");
-    $("#date").value=toISO(new Date());
+    const today = toISO(new Date());
+    $("#date").value=today;
+    $("#dateLabel").textContent="今天";
     openModal("entryModal");
+    setTimeout(()=>$("#amount").focus(),120);
   };
+
+  $("#dateQuickBtn").onclick=()=>{
+    if(typeof $("#date").showPicker==="function"){
+      $("#date").showPicker();
+    }else{
+      $("#date").click();
+    }
+  };
+
+  $("#date").addEventListener("change",()=>{
+    const today=toISO(new Date());
+    $("#dateLabel").textContent=$("#date").value===today ? "今天" : $("#date").value.replaceAll("-","/");
+  });
 
   $("#entryForm").addEventListener("submit",async e=>{
     e.preventDefault();
