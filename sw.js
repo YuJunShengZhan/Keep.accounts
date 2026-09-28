@@ -1,4 +1,4 @@
-const CACHE_NAME = "simple-accounting-supabase-v1";
+const CACHE_NAME = "simple-accounting-supabase-v2";
 const APP_SHELL = [
   "./",
   "./index.html",
